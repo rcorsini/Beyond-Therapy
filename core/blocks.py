@@ -227,7 +227,8 @@ class SplitBlock(blocks.StructBlock):
 
 class FormItemBlock(blocks.StructBlock):
     title = blocks.CharBlock()
-    document = DocumentChooserBlock(required=False)
+    online_url = blocks.URLBlock(required=False, help_text="Secure online form (e.g. LuxSci). Shown as 'Fill out online'.")
+    document = DocumentChooserBlock(required=False, help_text="Printable PDF, if there is one.")
     note = blocks.CharBlock(required=False, help_text="e.g. 'Only if you'll use telehealth'")
 
 

@@ -662,3 +662,4 @@ a.doc-list__type:hover { text-decoration: underline; }
 .topbar__vet-short { display: none; }
 @media (max-width: 640px) { .topbar__vet-long { display: none; } .topbar__vet-short { display: inline; } }
 .team-card .team-card__initials { width: 120px; height: 120px; max-width: none; }
+.doc-list__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

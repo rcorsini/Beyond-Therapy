@@ -2,9 +2,12 @@
 <li class="doc-list__item">
     <span class="doc-list__icon">{% icon "doc" 22 %}</span>
     <span class="doc-list__text">
-        {% if f.document %}<a href="{{ f.document.url }}">{{ f.title }}</a>{% else %}<strong>{{ f.title }}</strong>{% endif %}
+        <strong>{{ f.title }}</strong>
         {% if f.note %}<small>{{ f.note }}</small>{% endif %}
     </span>
-    {% if f.document %}<a class="btn btn--lime btn--small" href="{{ f.document.url }}" download>Download<span class="visually-hidden"> {{ f.title }}</span></a>
-    {% elif s.email %}<a class="doc-list__type doc-list__type--muted" href="mailto:{{ s.email }}?subject={{ f.title|urlencode }}">Ask us for this form</a>{% endif %}
+    <span class="doc-list__actions">
+        {% if f.online_url %}<a class="btn btn--lime btn--small" href="{{ f.online_url }}" rel="noopener" target="_blank">Fill out online<span class="visually-hidden"> {{ f.title }} (opens a secure form in a new tab)</span></a>{% endif %}
+        {% if f.document %}<a class="btn btn--ghost btn--small" href="{{ f.document.url }}" download>PDF<span class="visually-hidden"> of {{ f.title }}</span></a>{% endif %}
+        {% if not f.online_url and not f.document and s.email %}<a class="doc-list__type doc-list__type--muted" href="mailto:{{ s.email }}?subject={{ f.title|urlencode }}">Ask us for this form</a>{% endif %}
+    </span>
 </li>

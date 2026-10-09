@@ -383,15 +383,29 @@ class Command(BaseCommand):
         services.save_revision().publish()
 
         # ---------------- Get started ----------------
+        # Secure online forms the clinic already uses (LuxSci, linked from beyondlimitstherapy.org/admission-forms/).
+        lux = "https://secureform.luxsci.com/forms/18016/"
+        online = {
+            "General Admissions Form": lux + "12134/J1HD/form.html",
+            "General Admission with Upper Extremity Intake Form": lux + "23214/J9P3/form.html",
+            "ST/OT Feeding Intake Form": lux + "24532/jCRG/form.html",
+            "Audiology Admission|Newborn to 12 months": lux + "22903/xOy1/form.html",
+            "Audiology Admission|13 months to school age": lux + "22904/R68Q/form.html",
+            "Patient Update Form": lux + "18856/JHPn/form.html",
+            "Telehealth Consent Form": lux + "15983/hFgB/form.html",
+            "Payment Consent Form": lux + "18866/Q5Lr/form.html",
+        }
+
         def form(title, note=""):
-            return {"title": title, "document": None, "note": note}
+            url = online.get(f"{title}|{note}") or online.get(title, "")
+            return {"title": title, "online_url": url, "document": None, "note": note}
 
         new_family_forms = [form("Payment Consent Form")]
         get_started.body = stream(
             block("form_finder", {
                 "heading": heading("Find the right forms", "Step one", "Answer one or two quick questions and we'll show you exactly what to fill out."),
                 "question": "What brings you here today?",
-                "return_note": "<p><b>Sending forms back:</b> email them to info@blptc.org, fax them to 770-917-5740, or bring them to your first visit. Can't print? Arrive 15 to 20 minutes early and fill them out here.</p>",
+                "return_note": "<p><b>Online forms</b> go straight to our office through a secure, HIPAA-compliant connection. For a PDF, email it to info@blptc.org, fax it to 770-917-5740, or bring it to your first visit.</p>",
                 "paths": [
                     {
                         "label": "My child is new to Beyond Limits", "description": "Starting therapy or a hearing test", "icon": "family",
@@ -421,7 +435,7 @@ class Command(BaseCommand):
                     {
                         "label": "I need medical records", "description": "For you, a school or another provider", "icon": "clipboard",
                         "follow_up_question": "", "options": [],
-                        "forms": [form("Medical Records Request and Disclosure")],
+                        "forms": [{"title": "Medical Records Request and Disclosure", "online_url": "", "document": None, "note": "Printable PDF. Upload it under Documents to enable the download."}],
                         "note": "", "button": link(),
                     },
                     {
