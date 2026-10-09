@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags site_tags %}
+{% block body_class %}template-services{% endblock %}
+{% block content %}
+{% include "includes/page_hero.html" %}
+<section class="section">
+    <div class="container service-grid">
+        {% for service in services %}
+        <a class="service-card service-card--{{ service.hero_color }}" href="{% pageurl service %}">
+            <span class="service-card__icon">{% icon service.icon 40 %}</span>
+            <h2>{{ service.title }}</h2>
+            <p>{{ service.summary }}</p>
+            {% if service.age_range %}<p class="service-card__ages">Ages {{ service.age_range|lower }}</p>{% endif %}
+            <span class="service-card__more">Explore {{ service.short_name|default:service.title }} {% icon "arrow" 18 %}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+<div class="page-body">{% for block in page.body %}{% include_block block %}{% endfor %}</div>
+{% endblock %}

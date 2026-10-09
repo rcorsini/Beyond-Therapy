@@ -1,0 +1,43 @@
+{% load wagtailcore_tags site_tags %}
+{% with s=settings.core.ClinicSettings %}
+<footer class="site-footer">
+    <div class="container site-footer__grid">
+        <div class="site-footer__about">
+            {% include "includes/brand.html" %}
+            {% if s.tagline %}<p>{{ s.tagline }}</p>{% endif %}
+            <p class="site-footer__hipaa">{% icon "shield" 18 %} HIPAA verified practice</p>
+            <p class="site-footer__social">
+                {% if s.facebook_url %}<a href="{{ s.facebook_url }}" rel="noopener">Facebook</a>{% endif %}
+                {% if s.instagram_url %}<a href="{{ s.instagram_url }}" rel="noopener">Instagram</a>{% endif %}
+                {% if s.youtube_url %}<a href="{{ s.youtube_url }}" rel="noopener">YouTube</a>{% endif %}
+                {% if s.linkedin_url %}<a href="{{ s.linkedin_url }}" rel="noopener">LinkedIn</a>{% endif %}
+            </p>
+        </div>
+        <div>
+            <h2 class="site-footer__heading">Visit</h2>
+            <p>{% icon "pin" 18 %} <span>{{ s.address_line_1 }}<br>{{ s.address_line_2 }}</span></p>
+            {% if s.hours %}<p>{% icon "clock" 18 %} <span>{{ s.hours }}</span></p>{% endif %}
+            {% if s.directions_url %}<p><a href="{{ s.directions_url }}" rel="noopener">Get directions</a></p>{% endif %}
+        </div>
+        <div>
+            <h2 class="site-footer__heading">Talk to us</h2>
+            {% if s.phone %}<p>{% icon "phone" 18 %} <a href="tel:{{ s.phone_digits }}">{{ s.phone }}</a> <small>call or text</small></p>{% endif %}
+            {% if s.fax %}<p>{% icon "doc" 18 %} <span>Fax {{ s.fax }}</span></p>{% endif %}
+            {% if s.email %}<p>{% icon "mail" 18 %} <a href="mailto:{{ s.email }}">{{ s.email }}</a></p>{% endif %}
+        </div>
+        <div>
+            <h2 class="site-footer__heading">Quick links</h2>
+            <ul class="site-footer__links">
+                {% if s.start_page %}<li><a href="{% pageurl s.start_page %}">New patient forms</a></li>{% endif %}
+                {% if s.veterans_page %}<li><a href="{% pageurl s.veterans_page %}">{% icon "flag" 16 %} Veterans hearing exams</a></li>{% endif %}
+                {% if s.careers_page %}<li><a href="{% pageurl s.careers_page %}">Careers</a></li>{% endif %}
+                {% if s.privacy_page %}<li><a href="{% pageurl s.privacy_page %}">HIPAA privacy policy</a></li>{% endif %}
+            </ul>
+        </div>
+    </div>
+    <a class="to-top" href="#main" data-to-top aria-label="Back to top">{% icon "arrow" 22 %}</a>
+    <div class="container site-footer__bottom">
+        <p>&copy; {% now "Y" %} {{ s.clinic_name }}. Acworth, Georgia.</p>
+    </div>
+</footer>
+{% endwith %}

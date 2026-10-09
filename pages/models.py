@@ -1,0 +1,258 @@
+from django.db import models
+from django.http import Http404
+from django.template.response import TemplateResponse
+from django.utils.text import slugify
+
+from modelcluster.fields import ParentalKey
+from wagtail.admin.panels import FieldPanel, FieldRowPanel, InlinePanel, MultiFieldPanel
+from wagtail.contrib.forms.models import AbstractEmailForm, AbstractFormField
+from wagtail.contrib.forms.panels import FormSubmissionsPanel
+from wagtail.contrib.routable_page.models import RoutablePageMixin, path
+from wagtail.fields import RichTextField, StreamField
+from wagtail.models import Page
+from wagtail.search import index
+from wagtail.snippets.models import register_snippet
+
+from core.blocks import COLOR_CHOICES, ICON_CHOICES, BodyStreamBlock
+
+HERO_COLOR_CHOICES = [("indigo", "Soft indigo")] + COLOR_CHOICES + [("navy", "Navy (veterans)")]
+
+
+class HeroMixin(models.Model):
+    hero_intro = models.TextField(blank=True, help_text="One or two friendly sentences under the page title.")
+    hero_color = models.CharField(max_length=10, choices=HERO_COLOR_CHOICES, default="indigo")
+
+    hero_panels = [MultiFieldPanel([FieldPanel("hero_intro"), FieldPanel("hero_color")], "Page header")]
+
+    class Meta:
+        abstract = True
+
+
+class StandardPage(HeroMixin, Page):
+    body = StreamField(BodyStreamBlock(), blank=True)
+
+    content_panels = Page.content_panels + HeroMixin.hero_panels + [FieldPanel("body")]
+    search_fields = Page.search_fields + [index.SearchField("hero_intro"), index.SearchField("body")]
+
+
+class ServiceIndexPage(HeroMixin, Page):
+    body = StreamField(BodyStreamBlock(), blank=True)
+
+    content_panels = Page.content_panels + HeroMixin.hero_panels + [FieldPanel("body")]
+    subpage_types = ["pages.ServicePage", "pages.StandardPage"]
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["services"] = ServicePage.objects.child_of(self).live().public()
+        return context
+
+
+class ServicePage(HeroMixin, Page):
+    short_name = models.CharField(max_length=40, blank=True, help_text="e.g. 'OT'")
+    icon = models.CharField(max_length=20, choices=ICON_CHOICES, default="star")
+    summary = models.TextField(help_text="One or two sentences for cards and listings.")
+    age_range = models.CharField(max_length=60, blank=True, default="Birth to 21")
+    show_in_overview = models.BooleanField(default=True, help_text="Show on the home page services list.")
+    intro = RichTextField(features=["bold", "italic", "link"], blank=True)
+    helps_with = models.TextField(blank=True, help_text="One item per line. Conditions and needs this service helps with.")
+    what_we_offer = models.TextField(blank=True, help_text="One item per line.")
+    first_visit = models.TextField(blank=True, help_text="What to expect at the first visit.")
+    body = StreamField(BodyStreamBlock(), blank=True)
+
+    content_panels = Page.content_panels + HeroMixin.hero_panels + [
+        MultiFieldPanel(
+            [FieldRowPanel([FieldPanel("short_name"), FieldPanel("icon"), FieldPanel("age_range")]), FieldPanel("summary"), FieldPanel("show_in_overview")],
+            "Card",
+        ),
+        FieldPanel("intro"),
+        FieldPanel("helps_with"),
+        FieldPanel("what_we_offer"),
+        FieldPanel("first_visit"),
+        FieldPanel("body"),
+    ]
+    parent_page_types = ["pages.ServiceIndexPage"]
+    search_fields = Page.search_fields + [index.SearchField("summary"), index.SearchField("helps_with"), index.SearchField("body")]
+
+    def helps_with_list(self):
+        return [line.strip() for line in self.helps_with.splitlines() if line.strip()]
+
+    def what_we_offer_list(self):
+        return [line.strip() for line in self.what_we_offer.splitlines() if line.strip()]
+
+    def siblings(self):
+        return ServicePage.objects.sibling_of(self, inclusive=False).live().public()
+
+
+DISCIPLINE_CHOICES = [
+    ("audiology", "Audiology"),
+    ("ot", "Occupational Therapy"),
+    ("pt", "Physical Therapy"),
+    ("slp", "Speech-Language Pathology"),
+    ("office", "Front Office & Leadership"),
+]
+
+DISCIPLINE_COLORS = {"audiology": "sky", "ot": "coral", "pt": "leaf", "slp": "grape", "office": "sun"}
+
+
+@register_snippet
+class TeamMember(index.Indexed, models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True, blank=True, help_text="Used in the profile address. Filled in from the name if left blank.")
+    credentials = models.CharField(max_length=80, blank=True, help_text="e.g. 'M.S., CCC-SLP'")
+    title = models.CharField(max_length=100, blank=True, help_text="e.g. 'Clinical Coordinator'")
+    discipline = models.CharField(max_length=20, choices=DISCIPLINE_CHOICES)
+    photo = models.ForeignKey("wagtailimages.Image", null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    bio = models.TextField(blank=True, help_text="One or two sentences for the team card.")
+    intro = models.CharField(max_length=200, blank=True, help_text="Opening line on the profile, e.g. 'Meet Kimberly!'")
+    licensure = models.TextField(blank=True, help_text="Licenses and certifications, one per line.")
+    education = models.TextField(blank=True, help_text="Degrees, one per line.")
+    experience = RichTextField(blank=True, features=["bold", "italic", "link", "ul"], help_text="Clinical experience and interests.")
+    favorite_thing = models.CharField(max_length=140, blank=True, help_text="A fun line families and future teammates will remember.")
+    is_clinician = models.BooleanField(default=True)
+    sort_order = models.IntegerField(default=0)
+
+    panels = [
+        FieldPanel("name"),
+        FieldRowPanel([FieldPanel("credentials"), FieldPanel("title")]),
+        FieldRowPanel([FieldPanel("discipline"), FieldPanel("is_clinician"), FieldPanel("sort_order")]),
+        FieldPanel("slug"),
+        FieldPanel("photo"),
+        FieldPanel("bio"),
+        MultiFieldPanel(
+            [FieldPanel("intro"), FieldPanel("licensure"), FieldPanel("education"), FieldPanel("experience")],
+            "Profile page",
+        ),
+        FieldPanel("favorite_thing"),
+    ]
+    search_fields = [index.SearchField("name"), index.SearchField("bio")]
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return f"{self.name}, {self.credentials}" if self.credentials else self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.name.replace("Dr.", "")) or "provider"
+            slug, n = base, 2
+            while TeamMember.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug, n = f"{base}-{n}", n + 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def licensure_list(self):
+        return [line.strip() for line in self.licensure.splitlines() if line.strip()]
+
+    def education_list(self):
+        return [line.strip() for line in self.education.splitlines() if line.strip()]
+
+    @property
+    def url(self):
+        team_page = TeamPage.objects.live().first()
+        return f"{team_page.url}{self.slug}/" if team_page else ""
+
+    @property
+    def initials(self):
+        parts = [p for p in self.name.replace("Dr.", "").split() if p[:1].isalpha()]
+        return "".join(p[0] for p in parts[:2]).upper()
+
+    @property
+    def color(self):
+        return DISCIPLINE_COLORS.get(self.discipline, "sun")
+
+
+class TeamPage(RoutablePageMixin, HeroMixin, Page):
+    body = StreamField(BodyStreamBlock(), blank=True)
+
+    content_panels = Page.content_panels + HeroMixin.hero_panels + [FieldPanel("body")]
+    max_count = 1
+
+    @path("")
+    def index(self, request):
+        return self.render(request)
+
+    @path("<slug:slug>/")
+    def profile(self, request, slug):
+        member = TeamMember.objects.filter(slug=slug).first()
+        if not member:
+            raise Http404
+        context = self.get_context(request)
+        context["member"] = member
+        context["teammates"] = TeamMember.objects.filter(discipline=member.discipline).exclude(pk=member.pk)[:4]
+        return TemplateResponse(request, "pages/team_member.html", context)
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        members = list(TeamMember.objects.all())
+        groups = []
+        for key, label in DISCIPLINE_CHOICES:
+            group = [m for m in members if m.discipline == key]
+            if group:
+                groups.append({"key": key, "label": label, "color": DISCIPLINE_COLORS[key], "members": group})
+        context["groups"] = groups
+        return context
+
+
+class CareersPage(HeroMixin, Page):
+    body = StreamField(BodyStreamBlock(), blank=True)
+    no_openings_text = models.CharField(
+        max_length=255, blank=True,
+        default="No openings posted right now, but we always want to hear from great therapists.",
+    )
+    general_apply_email = models.EmailField(blank=True)
+
+    content_panels = Page.content_panels + HeroMixin.hero_panels + [
+        FieldPanel("body"), FieldPanel("no_openings_text"), FieldPanel("general_apply_email"),
+    ]
+    subpage_types = ["pages.JobPage"]
+    max_count = 1
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["jobs"] = JobPage.objects.child_of(self).live().public().filter(is_open=True)
+        return context
+
+
+class JobPage(HeroMixin, Page):
+    discipline = models.CharField(max_length=20, choices=DISCIPLINE_CHOICES)
+    employment_type = models.CharField(max_length=40, default="Full-time")
+    location = models.CharField(max_length=80, default="Acworth, GA")
+    summary = models.TextField()
+    body = StreamField(BodyStreamBlock(), blank=True)
+    apply_email = models.EmailField(blank=True)
+    apply_url = models.URLField(blank=True)
+    is_open = models.BooleanField(default=True)
+
+    content_panels = Page.content_panels + [
+        FieldRowPanel([FieldPanel("discipline"), FieldPanel("employment_type"), FieldPanel("location")]),
+        FieldPanel("summary"),
+        FieldPanel("body"),
+        FieldRowPanel([FieldPanel("apply_email"), FieldPanel("apply_url")]),
+        FieldPanel("is_open"),
+    ]
+    parent_page_types = ["pages.CareersPage"]
+
+    @property
+    def color(self):
+        return DISCIPLINE_COLORS.get(self.discipline, "sun")
+
+
+class ContactFormField(AbstractFormField):
+    page = ParentalKey("ContactPage", on_delete=models.CASCADE, related_name="form_fields")
+
+
+class ContactPage(HeroMixin, AbstractEmailForm):
+    intro = RichTextField(blank=True)
+    thank_you_text = RichTextField(blank=True)
+
+    content_panels = AbstractEmailForm.content_panels + HeroMixin.hero_panels + [
+        FormSubmissionsPanel(),
+        FieldPanel("intro"),
+        InlinePanel("form_fields", label="Form fields"),
+        FieldPanel("thank_you_text"),
+        MultiFieldPanel(
+            [FieldRowPanel([FieldPanel("from_address"), FieldPanel("to_address")]), FieldPanel("subject")],
+            "Email",
+        ),
+    ]

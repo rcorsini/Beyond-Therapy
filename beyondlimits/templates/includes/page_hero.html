@@ -1,0 +1,12 @@
+{% load site_tags %}
+<section class="page-hero page-hero--{{ page.hero_color|default:'sun' }}">
+    <div class="container page-hero__inner">
+        {% if page.get_parent.depth > 2 %}<p class="page-hero__crumb"><a href="{{ page.get_parent.url }}">{{ page.get_parent.title }}</a></p>{% endif %}
+        <h1 class="page-hero__title">{% block hero_title %}{{ page.title }}{% endblock %}</h1>
+        {% if page.hero_intro %}<p class="page-hero__intro">{{ page.hero_intro }}</p>{% endif %}
+        {{ hero_extra|default:"" }}
+    </div>
+    <span class="page-hero__shape page-hero__shape--a" aria-hidden="true"></span>
+    <span class="page-hero__shape page-hero__shape--b" aria-hidden="true"></span>
+    {% include "includes/wave.html" %}
+</section>

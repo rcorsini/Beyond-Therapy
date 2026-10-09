@@ -1,0 +1,10 @@
+{% load site_tags %}
+<li class="doc-list__item">
+    <span class="doc-list__icon">{% icon "doc" 22 %}</span>
+    <span class="doc-list__text">
+        {% if f.document %}<a href="{{ f.document.url }}">{{ f.title }}</a>{% else %}<strong>{{ f.title }}</strong>{% endif %}
+        {% if f.note %}<small>{{ f.note }}</small>{% endif %}
+    </span>
+    {% if f.document %}<a class="btn btn--lime btn--small" href="{{ f.document.url }}" download>Download<span class="visually-hidden"> {{ f.title }}</span></a>
+    {% elif s.email %}<a class="doc-list__type doc-list__type--muted" href="mailto:{{ s.email }}?subject={{ f.title|urlencode }}">Ask us for this form</a>{% endif %}
+</li>

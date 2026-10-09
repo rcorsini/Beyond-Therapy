@@ -1,0 +1,11 @@
+{% load wagtailcore_tags site_tags %}
+<div class="container container--narrow block">
+    <aside class="callout callout--{{ value.color }}">
+        <span class="callout__icon">{% icon value.icon 28 %}</span>
+        <div>
+            <h3>{{ value.title }}</h3>
+            {% if value.text %}<div class="prose">{{ value.text|richtext }}</div>{% endif %}
+            {% if value.button.url %}<a class="btn btn--ink btn--small" href="{{ value.button.url }}">{{ value.button.label|default:"Learn more" }}</a>{% endif %}
+        </div>
+    </aside>
+</div>

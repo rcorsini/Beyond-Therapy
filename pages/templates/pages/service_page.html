@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags site_tags %}
+{% block body_class %}template-service{% endblock %}
+{% block content %}
+{% with s=settings.core.ClinicSettings %}
+<section class="page-hero page-hero--{{ page.hero_color }}">
+    <div class="container page-hero__inner page-hero__inner--service">
+        <span class="page-hero__icon">{% icon page.icon 48 %}</span>
+        <div>
+            <p class="page-hero__crumb"><a href="{{ page.get_parent.url }}">{{ page.get_parent.title }}</a></p>
+            <h1 class="page-hero__title">{{ page.title }}</h1>
+            {% if page.hero_intro %}<p class="page-hero__intro">{{ page.hero_intro }}</p>{% endif %}
+            {% if page.age_range %}<p class="pill">{% icon "heart" 16 %} Ages {{ page.age_range|lower }}</p>{% endif %}
+        </div>
+    </div>
+    <span class="page-hero__shape page-hero__shape--a" aria-hidden="true"></span>
+    <span class="page-hero__shape page-hero__shape--b" aria-hidden="true"></span>
+    {% include "includes/wave.html" %}
+</section>
+<div class="container service-layout">
+    <div class="service-layout__main">
+        {% if page.intro %}<div class="prose prose--lead">{{ page.intro|richtext }}</div>{% endif %}
+        {% if page.helps_with_list %}
+        <section class="checklist checklist--{{ page.hero_color }}">
+            <h2>Who we help</h2>
+            <ul class="checklist__cols">{% for item in page.helps_with_list %}<li>{% icon "check" 20 %}<span>{{ item }}</span></li>{% endfor %}</ul>
+        </section>
+        {% endif %}
+        {% if page.what_we_offer_list %}
+        <section class="offer">
+            <h2>What we offer</h2>
+            <ul class="offer__list">{% for item in page.what_we_offer_list %}<li>{% icon "sparkle" 20 %}<span>{{ item }}</span></li>{% endfor %}</ul>
+        </section>
+        {% endif %}
+        {% if page.first_visit %}
+        <section class="first-visit">
+            <h2>Your first visit</h2>
+            <p>{{ page.first_visit|linebreaksbr }}</p>
+        </section>
+        {% endif %}
+    </div>
+    <aside class="service-layout__aside">
+        <div class="sticky-card">
+            <h2>Ready when you are</h2>
+            <p>Most families start with a quick call. We'll check your insurance and walk you through the forms.</p>
+            {% if s.start_page %}<a class="btn btn--coral btn--block" href="{% pageurl s.start_page %}">Start here</a>{% endif %}
+            {% if s.phone %}<a class="btn btn--ghost btn--block" href="tel:{{ s.phone_digits }}">{% icon "phone" 18 %} {{ s.phone }}</a>{% endif %}
+            {% if page.siblings %}
+            <h3>Other therapies</h3>
+            <ul class="mini-links">{% for sib in page.siblings %}<li><a href="{% pageurl sib %}">{% icon sib.specific.icon 18 %} {{ sib.title }}</a></li>{% endfor %}</ul>
+            {% endif %}
+        </div>
+    </aside>
+</div>
+<div class="page-body">{% for block in page.body %}{% include_block block %}{% endfor %}</div>
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,16 @@
+{% load wagtailcore_tags site_tags %}
+<section class="section section--services block">
+    <div class="container">
+        {% include "core/blocks/heading.html" with value=value.heading align="center" %}
+        <div class="service-grid">
+            {% for service in services %}
+            <a class="service-card service-card--{{ service.hero_color }}" href="{% pageurl service %}">
+                <span class="service-card__icon">{% icon service.icon 40 %}</span>
+                <h3>{{ service.title }}</h3>
+                <p>{{ service.summary }}</p>
+                <span class="service-card__more">Explore {{ service.short_name|default:service.title }} {% icon "arrow" 18 %}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>

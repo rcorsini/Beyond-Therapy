@@ -1,0 +1,16 @@
+{% load wagtailimages_tags site_tags %}
+<section class="section block">
+    <div class="container">
+        {% include "core/blocks/heading.html" with value=value.heading align="center" %}
+        <ul class="face-row">
+            {% for m in members %}
+            <li class="face face--{{ m.color }}">
+                {% if m.photo %}{% image m.photo fill-240x240 format-webp class="face__photo" %}{% else %}<span class="face__initials" aria-hidden="true">{{ m.initials }}</span>{% endif %}
+                <span class="face__name">{{ m.name }}</span>
+                <span class="face__role">{{ m.get_discipline_display }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% if value.button.url %}<p class="center"><a class="btn btn--teal" href="{{ value.button.url }}">{{ value.button.label|default:"Meet the whole team" }}</a></p>{% endif %}
+    </div>
+</section>

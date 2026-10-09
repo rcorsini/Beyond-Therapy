@@ -1,0 +1,7 @@
+{% load wagtailimages_tags %}
+<a class="brand" href="/" aria-label="{{ s.clinic_name }} home">
+    {% if s.logo %}{% image s.logo height-128 class="brand__logo" alt="" %}{% else %}
+    {% include "includes/logo.html" %}
+    <span class="brand__text"><span class="brand__name">{{ s.short_name }}</span><span class="brand__sub">Pediatric Therapy Center</span></span>
+    {% endif %}
+</a>

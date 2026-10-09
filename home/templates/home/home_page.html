@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags site_tags %}
+{% block title %}{{ settings.core.ClinicSettings.clinic_name }}{% endblock %}
+{% block title_suffix %}{% endblock %}
+{% block body_class %}template-home{% endblock %}
+{% block content %}
+{% with s=settings.core.ClinicSettings %}
+{% if page.slides %}
+<section class="slider" aria-roledescription="carousel" aria-label="Welcome" data-slider>
+    <div class="slider__track">
+        {% for block in page.slides %}{% with slide=block.value %}
+        <div class="slide slide--{{ slide.background }}{% if forloop.first %} is-current{% endif %}" role="group" aria-roledescription="slide" aria-label="{{ forloop.counter }} of {{ page.slides|length }}"{% if not forloop.first %} aria-hidden="true"{% endif %} data-slide>
+            {% if slide.image %}{% image slide.image fill-1920x900-c50 format-webp class="slide__bg" alt="" %}{% else %}<div class="slide__illo">{% include "includes/illustration.html" with name=slide.illustration %}</div>{% endif %}
+            <div class="container slide__inner">
+                <div class="slide__box slide__box--{{ slide.box_color }}">
+                    {% if slide.eyebrow %}<p class="slide__eyebrow">{{ slide.eyebrow }}</p>{% endif %}
+                    {% if forloop.first %}<h1 class="slide__title">{{ slide.title }}</h1>{% else %}<h2 class="slide__title">{{ slide.title }}</h2>{% endif %}
+                    {% if slide.text %}<p class="slide__text">{{ slide.text|linebreaksbr }}</p>{% endif %}
+                    <div class="slide__buttons">
+                        {% if slide.button.url %}<a class="btn btn--lime btn--large" href="{{ slide.button.url }}"{% if not forloop.first %} tabindex="-1"{% endif %}>{{ slide.button.label|default:"Learn more" }}</a>{% endif %}
+                    </div>
+                    {% if slide.note %}<p class="slide__note">{{ slide.note }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endwith %}{% endfor %}
+    </div>
+    {% if page.slides|length > 1 %}
+    <button class="slider__arrow slider__arrow--prev" type="button" data-slider-prev aria-label="Previous slide">{% icon "arrow" 22 %}</button>
+    <button class="slider__arrow slider__arrow--next" type="button" data-slider-next aria-label="Next slide">{% icon "arrow" 22 %}</button>
+    <div class="slider__controls">
+        {% for block in page.slides %}<button class="slider__dot" type="button" data-slider-dot="{{ forloop.counter0 }}" aria-label="Show slide {{ forloop.counter }}"{% if forloop.first %} aria-current="true"{% endif %}></button>{% endfor %}
+        <button class="slider__pause" type="button" data-slider-pause aria-pressed="false">Pause</button>
+    </div>
+    {% endif %}
+</section>
+{% else %}
+<section class="page-hero page-hero--indigo"><div class="container page-hero__inner"><h1 class="page-hero__title">{{ page.title }}</h1></div></section>
+{% endif %}
+{% for block in page.body %}{% include_block block %}{% endfor %}
+{% endwith %}
+{% endblock %}

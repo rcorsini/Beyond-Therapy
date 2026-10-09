@@ -1,0 +1,37 @@
+{% load wagtailcore_tags site_tags %}
+{% with s=settings.core.ClinicSettings %}
+<div class="topbar">
+    <div class="container topbar__inner">
+        <p class="topbar__contact">
+            {% if s.phone %}<a href="tel:{{ s.phone_digits }}">{% icon "phone" 16 %} Call or text <strong>{{ s.phone }}</strong></a>{% endif %}
+            {% if s.hours %}<span class="topbar__hours">{% icon "clock" 16 %} {{ s.hours }}</span>{% endif %}
+        </p>
+        <nav class="topbar__links" aria-label="Quick links">
+            {% if s.veterans_page %}<a class="topbar__veterans" href="{% pageurl s.veterans_page %}">{% icon "flag" 16 %} <span class="topbar__vet-long">{{ s.veterans_label }}</span><span class="topbar__vet-short">Veterans</span></a>{% endif %}
+            {% if s.careers_page %}<a class="topbar__careers" href="{% pageurl s.careers_page %}">{% icon "briefcase" 16 %} Careers</a>{% endif %}
+        </nav>
+    </div>
+</div>
+<header class="site-header" data-header>
+    <div class="container site-header__inner">
+        {% include "includes/brand.html" %}
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-nav-toggle>
+            <span class="nav-toggle__open">{% icon "menu" %}</span><span class="nav-toggle__close">{% icon "close" %}</span>
+            <span class="visually-hidden">Menu</span>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Main" data-nav>
+            <ul class="site-nav__list">
+                {% main_menu as menu %}
+                {% for item in menu %}
+                <li><a href="{% pageurl item %}" class="site-nav__link{% if item|is_active:page %} is-active{% endif %}"{% if item|is_active:page %} aria-current="page"{% endif %}>{{ item.title }}</a></li>
+                {% endfor %}
+            </ul>
+            <div class="site-nav__extras">
+                {% if s.veterans_page %}<a href="{% pageurl s.veterans_page %}">{% icon "flag" 18 %} {{ s.veterans_label }}</a>{% endif %}
+                {% if s.careers_page %}<a href="{% pageurl s.careers_page %}">{% icon "briefcase" 18 %} Careers</a>{% endif %}
+            </div>
+            {% if s.start_page %}<a class="btn btn--lime site-nav__cta" href="{% pageurl s.start_page %}">Start here</a>{% endif %}
+        </nav>
+    </div>
+</header>
+{% endwith %}

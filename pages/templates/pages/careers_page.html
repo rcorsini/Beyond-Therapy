@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags site_tags %}
+{% block body_class %}template-careers{% endblock %}
+{% block content %}
+{% include "includes/page_hero.html" %}
+<div class="page-body">{% for block in page.body %}{% include_block block %}{% endfor %}</div>
+<section class="section" id="openings">
+    <div class="container">
+        <div class="section-heading section-heading--center"><p class="eyebrow">Open roles</p><h2>Find your spot on the team</h2></div>
+        {% if jobs %}
+        <ul class="job-list">
+            {% for job in jobs %}
+            <li class="job-card job-card--{{ job.color }}">
+                <div>
+                    <h3><a href="{% pageurl job %}">{{ job.title }}</a></h3>
+                    <p class="job-card__meta"><span>{{ job.get_discipline_display }}</span><span>{{ job.employment_type }}</span><span>{% icon "pin" 16 %} {{ job.location }}</span></p>
+                    <p>{{ job.summary }}</p>
+                </div>
+                <span class="job-card__go" aria-hidden="true">{% icon "arrow" 24 %}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="center">{{ page.no_openings_text }}</p>
+        {% endif %}
+        {% if page.general_apply_email %}<p class="center"><a class="btn btn--grape" href="mailto:{{ page.general_apply_email }}?subject=Working%20at%20Beyond%20Limits">Send us your resume</a></p>{% endif %}
+    </div>
+</section>
+{% endblock %}
