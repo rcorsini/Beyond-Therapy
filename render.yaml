@@ -1,0 +1,34 @@
+# Render Blueprint for a preview copy of the site.
+# Every push to the branch redeploys it. The free plan's disk is wiped on each
+# deploy, so the site is rebuilt from the seed data every time (edits made in
+# the Wagtail admin and uploaded images don't survive a deploy).
+services:
+  - type: web
+    name: beyond-limits-preview
+    runtime: python
+    plan: free
+    branch: feature/wagtail-site
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: >-
+      python manage.py migrate --noinput &&
+      python manage.py seed_site &&
+      (python manage.py createsuperuser --noinput || true) &&
+      gunicorn beyondlimits.wsgi --bind 0.0.0.0:$PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DJANGO_SETTINGS_MODULE
+        value: beyondlimits.settings.production
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: SITE_NOINDEX
+        value: "1"
+      # Login for the Wagtail admin at /admin/. Render asks for these when you create the Blueprint.
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false

@@ -21,6 +21,12 @@ python manage.py runserver
 
 Open http://localhost:8000 for the site and http://localhost:8000/admin for the editor. To rebuild the starter content from scratch, run `python manage.py seed_site --reset`. This deletes all pages.
 
+## Preview on Render
+
+`render.yaml` sets up a free preview copy that redeploys on every push to `feature/wagtail-site`. In Render, choose **New > Blueprint**, pick this repository and that branch, and fill in an admin username, email and password when asked. The preview is hidden from search engines (`SITE_NOINDEX=1`).
+
+The free plan wipes the disk on each deploy, so the preview rebuilds itself from the seed data every time. Anything changed in the admin, and any uploaded image, is lost on the next deploy. For a copy that keeps edits, add a Render Postgres database or a persistent disk.
+
 ## What editors can change
 
 - **Settings > Clinic settings**: logo, phone, fax, email, address, hours, map, social links, and which pages "Start here", Veterans, Careers and HIPAA link to.
