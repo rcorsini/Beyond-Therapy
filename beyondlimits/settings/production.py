@@ -1,3 +1,7 @@
+"""Settings for any real server (the Render preview and launch). Everything secret or
+host-specific comes from environment variables; see the README for the list.
+"""
+
 from .base import *
 
 DEBUG = False
