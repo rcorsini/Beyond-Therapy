@@ -1,3 +1,7 @@
+// Beyond Limits site behavior. Plain JavaScript, no build step.
+// Each feature below is independent and only runs if its data- attribute is on
+// the page. The site works without JavaScript; the "js" class on <html> turns
+// on JS-only styles. Motion respects prefers-reduced-motion, here or in site.css.
 (function () {
   document.documentElement.classList.add("js");
 

@@ -86,4 +86,5 @@ class ClinicSettings(BaseGenericSetting):
 
     @property
     def phone_digits(self):
+        """The phone number as digits only, for tel: links."""
         return "".join(c for c in self.phone if c.isdigit())
