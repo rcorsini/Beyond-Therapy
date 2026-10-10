@@ -6,7 +6,9 @@
         {% if page.hero_intro %}<p class="page-hero__intro">{{ page.hero_intro }}</p>{% endif %}
         {{ hero_extra|default:"" }}
     </div>
-    <span class="page-hero__shape page-hero__shape--a" aria-hidden="true"></span>
-    <span class="page-hero__shape page-hero__shape--b" aria-hidden="true"></span>
+    <div class="page-hero__art" aria-hidden="true">
+        <span class="bf-fly bf-fly--a">{% include "includes/butterfly.html" %}</span>
+        <span class="bf-fly bf-fly--b">{% include "includes/butterfly.html" %}</span>
+    </div>
     {% include "includes/wave.html" %}
 </section>

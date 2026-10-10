@@ -295,9 +295,6 @@ main:focus { outline: none; }
 .page-hero__crumb { font-weight: 700; margin-bottom: 8px; }
 .page-hero__crumb a { color: inherit; }
 .page-hero__icon { flex: none; width: 96px; height: 96px; border-radius: 30px; background: #fff; display: grid; place-items: center; box-shadow: var(--shadow-pop); transform: rotate(-6deg); }
-.page-hero__shape { position: absolute; border-radius: 50%; opacity: .55; }
-.page-hero__shape--a { width: 260px; height: 260px; right: -60px; top: -60px; background: #fff; }
-.page-hero__shape--b { width: 120px; height: 120px; right: 14%; bottom: 40px; background: #fff; opacity: .35; }
 .page-hero--sun { background: var(--sun-soft); }
 .page-hero--coral { background: var(--coral-soft); }
 .page-hero--teal { background: var(--teal-soft); }
@@ -306,7 +303,6 @@ main:focus { outline: none; }
 .page-hero--leaf { background: var(--leaf-soft); }
 .page-hero--navy { background: var(--navy); color: #fff; }
 .page-hero--navy a { color: #fff; }
-.page-hero--navy .page-hero__shape { background: var(--sky); opacity: .2; }
 .page-hero--sun .page-hero__icon { color: #9a5a00; }
 .page-hero--indigo .page-hero__icon { color: var(--indigo); }
 .page-hero--coral .page-hero__icon { color: var(--coral-deep); }
@@ -605,7 +601,9 @@ main:focus { outline: none; }
 .quick-links__item p { margin: 0; }
 @media (max-width: 860px) { .quick-links { margin-top: 0; padding-top: 24px; } }
 
-.brand__logo { max-height: 64px; width: auto; }
+.brand__logo { height: 64px; width: auto; }
+.site-footer .brand__logo { height: 56px; }
+@media (max-width: 640px) { .brand__logo { height: 50px; } }
 .page-hero--indigo { background: var(--indigo-soft); }
 
 /* ---------- Provider cards & profiles ---------- */
@@ -699,3 +697,79 @@ a.doc-list__type:hover { text-decoration: underline; }
 .sticky-card__link a { display: inline-flex; align-items: center; gap: 6px; }
 .service-grid__more { text-align: center; margin: 28px 0 0; font-weight: 800; }
 .service-grid__more a { display: inline-flex; align-items: center; gap: 8px; }
+
+/* ---------- Butterflies ----------
+   Original line art in the logo's rainbow colors. Each wing half is its own
+   group so it can flap. Motion is gentle: bursts of fluttering, then gliding.
+   On the home slider it stops with the Pause button; in page headers it plays
+   once (under 5 seconds) and replays on hover. Reduced motion: no movement. */
+.bf-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.bf { display: block; width: 100%; height: auto; overflow: visible; }
+.bf__upper { fill: url(#bf-upper); }
+.bf__lower { fill: url(#bf-lower); }
+.bf__upper, .bf__lower { stroke: #180714; stroke-width: 2.2; stroke-linejoin: round; }
+.bf__vein { fill: none; stroke: #180714; stroke-opacity: .35; stroke-width: 1.1; stroke-linecap: round; }
+.bf circle { fill: #fff; }
+.bf .bf__body { fill: #180714; }
+.bf__antenna { fill: none; stroke: #180714; stroke-width: 1.6; stroke-linecap: round; }
+.bf__wing { transform-box: view-box; transform-origin: 50px 50px; }
+
+@keyframes bf-flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.3); } }
+@keyframes bf-flap-again { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.3); } }
+@keyframes bf-flutter {
+    0%, 40%, 100% { transform: scaleX(1); }
+    5%, 15%, 25%, 35% { transform: scaleX(.32); }
+    10%, 20%, 30% { transform: scaleX(1); }
+}
+@keyframes bf-drift {
+    0%, 100% { transform: translate(0, 0) rotate(-8deg); }
+    25% { transform: translate(16px, -18px) rotate(4deg); }
+    50% { transform: translate(-4px, -32px) rotate(-3deg); }
+    75% { transform: translate(-18px, -12px) rotate(7deg); }
+}
+@keyframes bf-arrive {
+    0% { transform: translate(var(--from-x, 30vw), var(--from-y, 160px)) rotate(24deg) scale(.5); opacity: 0; }
+    15% { opacity: 1; }
+    100% { transform: none; opacity: 1; }
+}
+.bf-fly { position: absolute; display: block; pointer-events: none; z-index: 1;
+    animation: bf-arrive var(--arrive, 3.4s) cubic-bezier(.25, .7, .35, 1) var(--delay, 0s) both; }
+.bf-fly .bf { transform: rotate(var(--tilt, -8deg)); }
+
+/* Home slider: ambient, pausable */
+.slider__butterflies { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.slider .bf-fly .bf { animation: bf-drift var(--drift, 12s) ease-in-out calc(var(--delay, 0s) + var(--arrive, 3.4s)) infinite; }
+.slider .bf-fly .bf__wing { animation: bf-flutter var(--flutter, 5s) ease-in-out var(--delay, 0s) infinite; }
+.slider.is-paused .bf-fly, .slider.is-paused .bf, .slider.is-paused .bf__wing { animation-play-state: paused; }
+.bf-fly--h1 { width: 118px; right: 7%; top: 9%; --from-x: 30vw; --from-y: 220px; --tilt: 10deg; --flutter: 4.6s; }
+.bf-fly--h2 { width: 74px; left: 47%; top: 11%; --delay: .7s; --from-x: -40vw; --from-y: 260px; --drift: 14s; --flutter: 5.6s; }
+.bf-fly--h3 { width: 52px; right: 34%; bottom: 23%; --delay: 1.4s; --from-x: 20vw; --from-y: 120px; --drift: 10s; --flutter: 4s; --tilt: -16deg; }
+@media (max-width: 860px) {
+    .bf-fly--h1 { width: 72px; right: 5%; top: 4%; }
+    .bf-fly--h2 { width: 48px; left: auto; right: 30%; top: 3%; }
+    .bf-fly--h3 { display: none; }
+}
+
+/* Page headers: fly in once, settle, flutter again on hover */
+.page-hero__art { position: absolute; inset: 0; pointer-events: none; }
+.page-hero .bf-fly .bf__wing { animation: bf-flap .5s ease-in-out var(--delay, 0s) 6; }
+.page-hero:hover .bf-fly .bf__wing { animation: bf-flap-again .5s ease-in-out 3; }
+.bf-fly--a { width: 96px; right: 10%; top: 14%; --from-x: 24vw; --from-y: -120px; --tilt: 12deg; }
+.bf-fly--b { width: 54px; right: 4%; bottom: 26%; --delay: .5s; --from-x: 30vw; --from-y: 80px; --tilt: -14deg; }
+@media (max-width: 760px) {
+    .bf-fly--a { width: 52px; right: 6%; top: auto; bottom: 64px; }
+    .bf-fly--b { display: none; }
+}
+
+/* Soft butterfly pattern behind page headers */
+.page-hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-color: var(--indigo); opacity: .06;
+    -webkit-mask: url("../img/butterfly-pattern.svg") 0 0 / 300px repeat;
+    mask: url("../img/butterfly-pattern.svg") 0 0 / 300px repeat;
+}
+.page-hero--navy::before { background-color: #fff; opacity: .08; }
+
+@media (prefers-reduced-motion: reduce) {
+    .bf-fly, .bf-fly .bf, .bf-fly .bf__wing { animation: none !important; }
+}

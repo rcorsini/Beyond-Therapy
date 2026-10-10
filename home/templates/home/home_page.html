@@ -25,6 +25,11 @@
         </div>
         {% endwith %}{% endfor %}
     </div>
+    <div class="slider__butterflies" aria-hidden="true">
+        <span class="bf-fly bf-fly--h1">{% include "includes/butterfly.html" %}</span>
+        <span class="bf-fly bf-fly--h2">{% include "includes/butterfly.html" %}</span>
+        <span class="bf-fly bf-fly--h3">{% include "includes/butterfly.html" %}</span>
+    </div>
     {% if page.slides|length > 1 %}
     <button class="slider__arrow slider__arrow--prev" type="button" data-slider-prev aria-label="Previous slide">{% icon "arrow" 22 %}</button>
     <button class="slider__arrow slider__arrow--next" type="button" data-slider-next aria-label="Next slide">{% icon "arrow" 22 %}</button>

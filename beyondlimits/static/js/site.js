@@ -75,6 +75,7 @@
     };
     var setPaused = function (p) {
       paused = p;
+      slider.classList.toggle("is-paused", p); // also stills the butterflies
       if (pauseBtn) { pauseBtn.textContent = p ? "Play" : "Pause"; pauseBtn.setAttribute("aria-pressed", String(p)); }
       p ? stop() : start();
     };

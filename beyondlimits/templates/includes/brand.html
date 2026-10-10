@@ -1,7 +1,5 @@
-{% load wagtailimages_tags %}
-<a class="brand" href="/" aria-label="{{ s.clinic_name }} home">
-    {% if s.logo %}{% image s.logo height-128 class="brand__logo" alt="" %}{% else %}
-    {% include "includes/logo.html" %}
-    <span class="brand__text"><span class="brand__name">{{ s.short_name }}</span><span class="brand__sub">Pediatric Therapy Center</span></span>
-    {% endif %}
+{% load static wagtailimages_tags %}
+<a class="brand" href="/">
+    {% if s.logo %}{% image s.logo height-140 as logo_img %}<img class="brand__logo" src="{{ logo_img.url }}" width="{{ logo_img.width }}" height="{{ logo_img.height }}" alt="{{ s.clinic_name }}, home">
+    {% else %}<img class="brand__logo" src="{% static 'img/beyond-limits-logo.png' %}" width="175" height="70" alt="{{ s.clinic_name }}, home">{% endif %}
 </a>
