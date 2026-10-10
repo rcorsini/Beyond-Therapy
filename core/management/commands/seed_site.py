@@ -179,6 +179,8 @@ class Command(BaseCommand):
         for child in root.get_children():
             child.delete()
         TeamMember.objects.all().delete()
+        # Reload starter photos so swapped files in core/seed_images take effect.
+        get_image_model().objects.filter(title__endswith="(starter photo)").delete()
         root.refresh_from_db()
 
         home = root.add_child(instance=HomePage(title="Home", slug="home"))
@@ -576,7 +578,7 @@ class Command(BaseCommand):
                 "heading": "Your first visit, one step at a time",
                 "parent_note": "Many children feel calmer when they know what will happen. Look through these pictures with your child a few times before the first visit and talk about each one. You can print them to keep at home or in the car.",
                 "steps": [
-                    {"type": "item", "value": {"photo": image_id(f, alt), "icon": icon, "text": text, "alt": alt}, "id": str(uuid.uuid4())}
+                    {"type": "item", "value": {"photo": image_id(f, f"First visit: {alt} (starter photo)"), "icon": icon, "text": text, "alt": alt}, "id": str(uuid.uuid4())}
                     for f, icon, text, alt in story_steps
                 ],
             }),

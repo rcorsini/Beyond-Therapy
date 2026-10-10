@@ -774,12 +774,12 @@ a.doc-list__type:hover { text-decoration: underline; }
 .slider .bf-fly .bf { animation: bf-drift var(--drift, 12s) ease-in-out calc(var(--delay, 0s) + var(--arrive, 3.4s)) infinite; }
 .slider .bf-fly .bf__wing { animation: bf-flutter var(--flutter, 5s) ease-in-out var(--delay, 0s) infinite; }
 .slider.is-paused .bf-fly, .slider.is-paused .bf, .slider.is-paused .bf__wing { animation-play-state: paused; }
-.bf-fly--h1 { width: 118px; right: 7%; top: 9%; --from-x: 30vw; --from-y: 220px; --tilt: 10deg; --flutter: 4.6s; }
+.bf-fly--h1 { width: 104px; right: 2%; top: 3%; --from-x: 30vw; --from-y: 220px; --tilt: 10deg; --flutter: 4.6s; }
 .bf-fly--h2 { width: 74px; left: 47%; top: 11%; --delay: .7s; --from-x: -40vw; --from-y: 260px; --drift: 14s; --flutter: 5.6s; }
-.bf-fly--h3 { width: 52px; right: 34%; bottom: 23%; --delay: 1.4s; --from-x: 20vw; --from-y: 120px; --drift: 10s; --flutter: 4s; --tilt: -16deg; }
+.bf-fly--h3 { width: 52px; right: 43%; bottom: 17%; --delay: 1.4s; --from-x: 20vw; --from-y: 120px; --drift: 10s; --flutter: 4s; --tilt: -16deg; }
 @media (max-width: 860px) {
     .bf-fly--h1 { width: 72px; right: 5%; top: 4%; }
-    .bf-fly--h2 { width: 48px; left: auto; right: 30%; top: 3%; }
+    .bf-fly--h2 { width: 46px; left: 5%; right: auto; top: 9%; }
     .bf-fly--h3 { display: none; }
 }
 
