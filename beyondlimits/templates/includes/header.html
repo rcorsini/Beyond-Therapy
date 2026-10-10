@@ -1,6 +1,6 @@
 {% load wagtailcore_tags site_tags %}
 {% with s=settings.core.ClinicSettings %}
-<div class="topbar">
+<aside class="topbar" aria-label="Contact and quick links">
     <div class="container topbar__inner">
         <p class="topbar__contact">
             {% if s.phone %}<a href="tel:{{ s.phone_digits }}">{% icon "phone" 16 %} Call or text <strong>{{ s.phone }}</strong></a>{% endif %}
@@ -11,7 +11,7 @@
             {% if s.careers_page %}<a class="topbar__careers" href="{% pageurl s.careers_page %}">{% icon "briefcase" 16 %} Careers</a>{% endif %}
         </nav>
     </div>
-</div>
+</aside>
 <header class="site-header" data-header>
     <div class="container site-header__inner">
         {% include "includes/brand.html" %}

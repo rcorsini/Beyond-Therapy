@@ -93,7 +93,7 @@ main:focus { outline: none; }
     color: var(--indigo);
     margin-bottom: 0.5em;
 }
-.eyebrow--light { color: var(--lime); }
+.eyebrow--light { color: #b0dc70; } /* lighter lime: 5.2:1 on indigo */
 
 .section-heading { max-width: 720px; margin-bottom: 40px; }
 .section-heading--center { margin-left: auto; margin-right: auto; text-align: center; }
@@ -396,7 +396,7 @@ main:focus { outline: none; }
 
 .callout { display: flex; gap: 20px; border-radius: var(--radius); padding: 26px 28px; }
 .callout__icon { flex: none; width: 56px; height: 56px; border-radius: 18px; background: #fff; display: grid; place-items: center; }
-.callout h3 { margin-bottom: .3em; }
+.callout h2, .callout h3 { font-size: 1.35rem; margin-bottom: .3em; }
 .callout .btn { margin-top: 14px; }
 .callout--sun { background: var(--sun-soft); } .callout--coral { background: var(--coral-soft); } .callout--teal { background: var(--teal-soft); }
 .callout--sky { background: var(--sky-soft); } .callout--grape { background: var(--grape-soft); } .callout--leaf { background: var(--leaf-soft); }

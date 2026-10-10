@@ -1,7 +1,7 @@
 {% load site_tags %}
 <div class="container container--narrow block">
     <div class="checklist checklist--{{ value.color }}">
-        {% if value.title %}<h3>{{ value.title }}</h3>{% endif %}
+        {% if value.title %}<h2>{{ value.title }}</h2>{% endif %}
         <ul>{% for item in value.items %}<li>{% icon "check" 20 %}<span>{{ item }}</span></li>{% endfor %}</ul>
     </div>
 </div>
