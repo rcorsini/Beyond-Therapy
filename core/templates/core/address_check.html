@@ -1,0 +1,15 @@
+{% extends "wagtailadmin/generic/base.html" %}
+
+{% block main_content %}
+    <p>The admin login locks after 5 wrong passwords for the same username and address. This page shows which address the lockout sees for you.</p>
+    <p class="help-block help-info">The lockout sees you as: <strong>{{ lockout_address|default:"(no address)" }}</strong></p>
+    <p>Compare it with your own address at <a href="https://www.whatismyip.com/" target="_blank" rel="noopener">whatismyip.com</a>. If they match, the lockout is tracking visitors correctly. If not, send this page to the developer so the lockout can read the right header below.</p>
+    <table class="listing">
+        <thead><tr><th scope="col">Header</th><th scope="col">Value</th></tr></thead>
+        <tbody>
+            {% for label, value in headers %}
+                <tr><th scope="row">{{ label }}</th><td><code>{{ value|default:"(not sent)" }}</code></td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

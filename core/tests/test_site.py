@@ -101,3 +101,13 @@ class AdminLockoutTests(TestCase):
 
     def test_django_admin_is_not_public(self):
         self.assertEqual(self.client.get("/django-admin/").status_code, 404)
+
+    def test_address_check_is_staff_only_and_shows_the_lockout_address(self):
+        from django.contrib.auth import get_user_model
+
+        self.assertEqual(self.client.get("/admin/address-check/").status_code, 302)
+        user = get_user_model().objects.create_superuser("staff", "staff@example.com", "right-password-123")
+        self.client.force_login(user)
+        response = self.client.get("/admin/address-check/", HTTP_X_FORWARDED_FOR="203.0.113.7, 10.0.0.1")
+        self.assertContains(response, "The lockout sees you as: <strong>10.0.0.1</strong>", html=False)
+        self.assertContains(response, "203.0.113.7, 10.0.0.1")

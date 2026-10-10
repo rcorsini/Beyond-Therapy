@@ -70,7 +70,9 @@ MIDDLEWARE = [
 
 # Admin login lockout (django-axes): after 5 wrong passwords for the same
 # username from the same address, that pair is locked out for an hour.
-# An admin can unlock early under Settings > Users, or with `manage.py axes_reset`.
+# There is no screen for unlocking early: django-axes adds nothing to the
+# Wagtail admin. Either wait the hour or run `manage.py axes_reset` (or
+# `axes_reset_username <name>`) from a shell on the server.
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
