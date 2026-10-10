@@ -4,14 +4,13 @@ from django.template.response import TemplateResponse
 from django.utils.text import slugify
 
 from modelcluster.fields import ParentalKey
-from wagtail.admin.panels import FieldPanel, FieldRowPanel, InlinePanel, MultiFieldPanel
+from wagtail.admin.panels import FieldPanel, FieldRowPanel, HelpPanel, InlinePanel, MultiFieldPanel
 from wagtail.contrib.forms.models import AbstractEmailForm, AbstractFormField
 from wagtail.contrib.forms.panels import FormSubmissionsPanel
 from wagtail.contrib.routable_page.models import RoutablePageMixin, path
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
 from wagtail.search import index
-from wagtail.snippets.models import register_snippet
 
 from core.blocks import COLOR_CHOICES, ICON_CHOICES, BodyStreamBlock
 
@@ -94,8 +93,9 @@ DISCIPLINE_CHOICES = [
 DISCIPLINE_COLORS = {"audiology": "sky", "ot": "coral", "pt": "leaf", "slp": "grape", "office": "sun"}
 
 
-@register_snippet
 class TeamMember(index.Indexed, models.Model):
+    """A provider or staff member. Edited under "Providers" in the admin menu (see wagtail_hooks.py)."""
+
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True, blank=True, help_text="Used in the profile address. Filled in from the name if left blank.")
     credentials = models.CharField(max_length=80, blank=True, help_text="e.g. 'M.S., CCC-SLP'")
@@ -108,7 +108,7 @@ class TeamMember(index.Indexed, models.Model):
     education = models.TextField(blank=True, help_text="Degrees, one per line.")
     experience = RichTextField(blank=True, features=["bold", "italic", "link", "ul"], help_text="Clinical experience and interests.")
     favorite_thing = models.CharField(max_length=140, blank=True, help_text="A fun line families and future teammates will remember.")
-    is_clinician = models.BooleanField(default=True)
+    is_clinician = models.BooleanField(default=True, help_text="Untick for front office staff. Only clinicians appear in the home page team row.")
     sort_order = models.IntegerField(default=0)
 
     panels = [
@@ -128,6 +128,7 @@ class TeamMember(index.Indexed, models.Model):
 
     class Meta:
         ordering = ["sort_order", "name"]
+        verbose_name = "provider"
 
     def __str__(self):
         return f"{self.name}, {self.credentials}" if self.credentials else self.name
@@ -165,7 +166,15 @@ class TeamMember(index.Indexed, models.Model):
 class TeamPage(RoutablePageMixin, HeroMixin, Page):
     body = StreamField(BodyStreamBlock(), blank=True)
 
-    content_panels = Page.content_panels + HeroMixin.hero_panels + [FieldPanel("body")]
+    content_panels = Page.content_panels + HeroMixin.hero_panels + [
+        HelpPanel(
+            content="<p><strong>Looking for the providers?</strong> Add, edit, reorder or remove them under "
+                    "<a href=\"/admin/snippets/pages/teammember/\">Providers</a> in the left menu. "
+                    "This page lists them automatically.</p>",
+            heading="Providers",
+        ),
+        FieldPanel("body"),
+    ]
     max_count = 1
 
     @path("")
