@@ -62,3 +62,12 @@ class SeededSiteTests(TestCase):
         self.assertContains(response, "data-slider-frame", count=1)
         self.assertContains(response, "data-slider-visual", count=4)
         self.assertContains(response, 'href="/services/#who-we-help"')
+
+    def test_contact_form_posts_to_luxsci(self):
+        response = self.client.get("/contact/")
+        self.assertContains(response, 'name="secureform"')
+        self.assertContains(response, 'action="https://secureform.luxsci.com/perl/post/18249-26830-Zg4g"')
+        self.assertContains(response, 'onsubmit="return secureform_submit();"')
+        self.assertContains(response, "secureform.php?v=1&amp;c=18249-26830-Zg4g&amp;f=secureform")
+        self.assertNotContains(response, "csrfmiddlewaretoken")
+        self.assertContains(self.client.get("/contact/?sent=1"), 'class="form-thanks"')

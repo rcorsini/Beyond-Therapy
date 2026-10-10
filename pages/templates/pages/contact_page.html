@@ -7,9 +7,17 @@
 <section class="section">
     <div class="container contact-layout">
         <div class="contact-layout__form">
-            {% if page.intro %}<div class="prose">{{ page.intro|richtext }}</div>{% endif %}
+            {% if sent %}
+            <div class="form-thanks" role="status">{% icon "check" 28 %}<div>{{ page.thank_you_text|richtext }}</div></div>
+            {% elif page.intro %}<div class="prose">{{ page.intro|richtext }}</div>{% endif %}
+            {% if page.luxsci_form_id %}
+            {# LuxSci Secure Form: HIPAA-secure delivery and spam protection. The script must load, and the form name must match f= in its URL. #}
+            <script src="{{ page.luxsci_script_url }}"></script>
+            <form class="form" name="secureform" method="post" action="{{ page.luxsci_action_url }}" onsubmit="return secureform_submit();">
+            {% else %}
             <form class="form" action="{% pageurl page %}" method="post" novalidate>
                 {% csrf_token %}
+            {% endif %}
                 {% if form.non_field_errors %}<div class="form__error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
                 {% for field in form %}
                 <div class="form__field{% if field.errors %} has-error{% endif %}{% if field.field.widget.input_type == 'checkbox' %} form__field--check{% endif %}">
@@ -19,7 +27,11 @@
                     {% for e in field.errors %}<p class="form__error" role="alert">{{ e }}</p>{% endfor %}
                 </div>
                 {% endfor %}
+                {% if page.luxsci_form_id %}
+                <p class="form__privacy">{% icon "shield" 16 %} Your message is sent securely through LuxSci, our HIPAA-compliant form service.</p>
+                {% else %}
                 <p class="form__privacy">{% icon "shield" 16 %} Please don't include medical details here. We'll talk privately when we call you back.</p>
+                {% endif %}
                 <button class="btn btn--coral btn--large" type="submit">Send message</button>
             </form>
         </div>
@@ -33,7 +45,7 @@
                 {% if s.hours %}<p>{% icon "clock" 20 %} <span>{{ s.hours }}</span></p>{% endif %}
                 {% if s.directions_url %}<a class="btn btn--ghost btn--block" href="{{ s.directions_url }}" rel="noopener">{% icon "pin" 18 %} Get directions</a>{% endif %}
             </div>
-            {% if s.secure_contact_url %}
+            {% if s.secure_contact_url and not page.luxsci_form_id %}
             <div class="info-card info-card--secure">
                 <h2>{% icon "shield" 22 %} Sharing health details?</h2>
                 <p>Use our secure, HIPAA-compliant message form instead. It goes straight to our office.</p>

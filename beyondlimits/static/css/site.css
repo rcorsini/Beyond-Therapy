@@ -839,3 +839,6 @@ a.doc-list__type:hover { text-decoration: underline; }
     .story__card figcaption { font-size: 15pt; }
     .page-body:has(.story) > :not(.story) { display: none; }
 }
+.form-thanks { display: flex; gap: 14px; align-items: flex-start; background: var(--lime-soft); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 24px; font-size: 1.1rem; }
+.form-thanks .icon { flex: none; color: var(--lime-deep); }
+.form-thanks p { margin: 0; }

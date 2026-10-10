@@ -256,9 +256,17 @@ class ContactFormField(AbstractFormField):
     page = ParentalKey("ContactPage", on_delete=models.CASCADE, related_name="form_fields")
 
 
+LUXSCI_FORM_NAME = "secureform"  # LuxSci matches this name, case sensitive
+
+
 class ContactPage(HeroMixin, AbstractEmailForm):
     intro = RichTextField(blank=True)
     thank_you_text = RichTextField(blank=True)
+    luxsci_form_id = models.CharField(
+        "LuxSci Secure Form code", max_length=60, blank=True,
+        help_text="e.g. 18249-26830-Zg4g. When filled in, messages go to LuxSci (HIPAA-secure, with spam "
+        "protection) instead of being saved in this admin. Leave blank to save messages here.",
+    )
 
     content_panels = AbstractEmailForm.content_panels + HeroMixin.hero_panels + [
         FormSubmissionsPanel(),
@@ -266,7 +274,30 @@ class ContactPage(HeroMixin, AbstractEmailForm):
         InlinePanel("form_fields", label="Form fields"),
         FieldPanel("thank_you_text"),
         MultiFieldPanel(
+            [
+                FieldPanel("luxsci_form_id"),
+                HelpPanel(
+                    "In LuxSci, set the page shown after sending to this page's address followed by ?sent=1 "
+                    "(for example https://beyondlimitstherapy.org/contact/?sent=1) so families see the thank-you text above."
+                ),
+            ],
+            "Secure form (LuxSci)",
+        ),
+        MultiFieldPanel(
             [FieldRowPanel([FieldPanel("from_address"), FieldPanel("to_address")]), FieldPanel("subject")],
-            "Email",
+            "Email (only used when there's no LuxSci code)",
         ),
     ]
+
+    @property
+    def luxsci_action_url(self):
+        return f"https://secureform.luxsci.com/perl/post/{self.luxsci_form_id}"
+
+    @property
+    def luxsci_script_url(self):
+        return f"https://secureform.luxsci.com/intranet/php/secureform.php?v=1&c={self.luxsci_form_id}&f={LUXSCI_FORM_NAME}"
+
+    def get_context(self, request, *args, **kwargs):
+        context = super().get_context(request, *args, **kwargs)
+        context["sent"] = request.GET.get("sent") == "1"
+        return context

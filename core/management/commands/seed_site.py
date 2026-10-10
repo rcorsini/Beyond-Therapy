@@ -225,6 +225,7 @@ class Command(BaseCommand):
             intro="<p>Questions about therapy, insurance or scheduling? Send us a message and our new patient advocate will reach out.</p>",
             thank_you_text="<p>Thanks for reaching out! Someone from our front office will contact you within one business day.</p>",
             to_address="info@blptc.org", from_address="website@blptc.org", subject="Website message",
+            luxsci_form_id="18249-26830-Zg4g",
         ))
         careers = add(home, CareersPage(
             title="Careers", slug="careers", show_in_menus=False, hero_color="indigo",
