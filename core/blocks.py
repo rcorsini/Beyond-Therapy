@@ -60,7 +60,7 @@ class HeadingBlock(blocks.StructBlock):
 
     class Meta:
         icon = "title"
-        template = "core/blocks/heading.html"
+        template = "core/blocks/heading_block.html"
 
 
 class ImageBlock(blocks.StructBlock):
@@ -265,6 +265,33 @@ class FormFinderBlock(blocks.StructBlock):
         template = "core/blocks/form_finder.html"
 
 
+class ConditionsBlock(blocks.StructBlock):
+    """Every condition listed on the service pages, with the therapies that help.
+
+    Built from each service's "Helps with" list, so it stays in sync with them.
+    Conditions with the same wording on several services are merged into one row.
+    """
+
+    heading = HeadingBlock()
+    filter_label = blocks.CharBlock(default="Search for a concern", required=False)
+
+    class Meta:
+        icon = "search"
+        template = "core/blocks/conditions.html"
+
+    def get_context(self, value, parent_context=None):
+        from pages.models import ServicePage
+
+        context = super().get_context(value, parent_context)
+        rows = {}
+        for service in ServicePage.objects.live().public().order_by("path"):
+            for name in service.helps_with_list():
+                row = rows.setdefault(name.lower(), {"name": name, "services": []})
+                row["services"].append(service)
+        context["conditions"] = sorted(rows.values(), key=lambda r: r["name"].lower())
+        return context
+
+
 class BodyStreamBlock(blocks.StreamBlock):
     heading = HeadingBlock()
     paragraph = blocks.RichTextBlock(
@@ -284,6 +311,7 @@ class BodyStreamBlock(blocks.StreamBlock):
     stats = StatsBlock()
     cta = CTABannerBlock()
     form_finder = FormFinderBlock()
+    conditions = ConditionsBlock()
 
 
 class ServicesOverviewBlock(blocks.StructBlock):

@@ -40,6 +40,13 @@ class ClinicSettings(BaseGenericSetting):
     privacy_page = models.ForeignKey(
         "wagtailcore.Page", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
     )
+    insurance_page = models.ForeignKey(
+        "wagtailcore.Page", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
+        help_text="Insurance and first-visit details, linked from the footer, contact page and service pages.",
+    )
+    secure_contact_url = models.URLField(
+        blank=True, help_text="Your HIPAA-secure contact form, for messages that include health details.",
+    )
 
     facebook_url = models.URLField(blank=True)
     instagram_url = models.URLField(blank=True)
@@ -52,14 +59,14 @@ class ClinicSettings(BaseGenericSetting):
             [
                 FieldPanel("phone"), FieldPanel("fax"), FieldPanel("email"),
                 FieldPanel("address_line_1"), FieldPanel("address_line_2"), FieldPanel("hours"),
-                FieldPanel("map_embed_url"), FieldPanel("directions_url"),
+                FieldPanel("map_embed_url"), FieldPanel("directions_url"), FieldPanel("secure_contact_url"),
             ],
             "Contact",
         ),
         MultiFieldPanel(
             [
                 FieldPanel("start_page"), FieldPanel("veterans_page"), FieldPanel("veterans_label"),
-                FieldPanel("careers_page"), FieldPanel("privacy_page"),
+                FieldPanel("careers_page"), FieldPanel("privacy_page"), FieldPanel("insurance_page"),
             ],
             "Global links",
         ),

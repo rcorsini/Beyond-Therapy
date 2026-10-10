@@ -45,6 +45,7 @@
             <p>Most families start with a quick call. We'll check your insurance and walk you through the forms.</p>
             {% if s.start_page %}<a class="btn btn--coral btn--block" href="{% pageurl s.start_page %}">Start here</a>{% endif %}
             {% if s.phone %}<a class="btn btn--ghost btn--block" href="tel:{{ s.phone_digits }}">{% icon "phone" 18 %} {{ s.phone }}</a>{% endif %}
+            {% if s.insurance_page %}<p class="sticky-card__link"><a href="{% pageurl s.insurance_page %}">{% icon "shield" 16 %} Insurance we take</a></p>{% endif %}
             {% if page.siblings %}
             <h3>Other therapies</h3>
             <ul class="mini-links">{% for sib in page.siblings %}<li><a href="{% pageurl sib %}">{% icon sib.specific.icon 18 %} {{ sib.title }}</a></li>{% endfor %}</ul>

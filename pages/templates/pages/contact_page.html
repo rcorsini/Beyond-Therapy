@@ -31,7 +31,16 @@
                 {% if s.fax %}<p>{% icon "doc" 20 %} <span>Fax {{ s.fax }}</span></p>{% endif %}
                 {% if s.email %}<p>{% icon "mail" 20 %} <a href="mailto:{{ s.email }}">{{ s.email }}</a></p>{% endif %}
                 {% if s.hours %}<p>{% icon "clock" 20 %} <span>{{ s.hours }}</span></p>{% endif %}
+                {% if s.directions_url %}<a class="btn btn--ghost btn--block" href="{{ s.directions_url }}" rel="noopener">{% icon "pin" 18 %} Get directions</a>{% endif %}
             </div>
+            {% if s.secure_contact_url %}
+            <div class="info-card info-card--secure">
+                <h2>{% icon "shield" 22 %} Sharing health details?</h2>
+                <p>Use our secure, HIPAA-compliant message form instead. It goes straight to our office.</p>
+                <a class="btn btn--indigo btn--block" href="{{ s.secure_contact_url }}" target="_blank" rel="noopener">Send a secure message<span class="visually-hidden"> (opens in a new tab)</span></a>
+            </div>
+            {% endif %}
+            {% if s.insurance_page %}<p class="contact-layout__more"><a href="{% pageurl s.insurance_page %}">Insurance and what to expect at your first visit</a></p>{% endif %}
             {% if s.map_embed_url %}<div class="map"><iframe title="Map to {{ s.clinic_name }}" src="{{ s.map_embed_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>{% endif %}
         </aside>
     </div>

@@ -29,6 +29,7 @@
             <h2 class="site-footer__heading">Quick links</h2>
             <ul class="site-footer__links">
                 {% if s.start_page %}<li><a href="{% pageurl s.start_page %}">New patient forms</a></li>{% endif %}
+                {% if s.insurance_page %}<li><a href="{% pageurl s.insurance_page %}">Insurance and first visit</a></li>{% endif %}
                 {% if s.veterans_page %}<li><a href="{% pageurl s.veterans_page %}">{% icon "flag" 16 %} Veterans hearing exams</a></li>{% endif %}
                 {% if s.careers_page %}<li><a href="{% pageurl s.careers_page %}">Careers</a></li>{% endif %}
                 {% if s.privacy_page %}<li><a href="{% pageurl s.privacy_page %}">HIPAA privacy policy</a></li>{% endif %}

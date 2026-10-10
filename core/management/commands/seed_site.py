@@ -105,7 +105,7 @@ SERVICES = [
         "summary": "Building the everyday skills kids need for home, school and play, from feeding and dressing to handwriting and handling big feelings.",
         "hero_intro": "Occupational therapy helps your child do the things they want and need to do every day, with more confidence and independence.",
         "intro": "<p>Our occupational therapists work on fine motor, sensory-motor and visual-motor skills through play. Sessions happen in our sensory gyms and treatment rooms, and you'll get a home program so progress keeps going between visits.</p>",
-        "helps_with": "Autism spectrum disorder\nADD and ADHD\nSensory processing differences\nDevelopmental delays and disabilities\nDown syndrome and other genetic diagnoses\nCerebral palsy and other neurological diagnoses\nFeeding challenges and picky eating\nTraumatic brain injury",
+        "helps_with": "Autism spectrum disorder\nADD and ADHD\nSensory processing differences\nDevelopmental delays and disabilities\nDown syndrome and other genetic conditions\nCerebral palsy\nOther neurological diagnoses\nFeeding challenges and picky eating\nTraumatic brain injury",
         "what_we_offer": "Full OT evaluations\nPlay-based therapy in our sensory gyms\nFeeding therapy\nHandwriting and fine motor skills\nDressing, self-care and daily routines\nSensory regulation, balance and attention\nParent coaching and home programs",
         "first_visit": "Your child's therapist will spend time playing and observing, and you'll fill us in on what's hard at home and school. Together we'll set goals that matter to your family.",
     },
@@ -131,7 +131,7 @@ SERVICES = [
         "summary": "Helping kids find their words and their voice, including talking, understanding, social communication and AAC devices.",
         "hero_intro": "Communication is how kids connect. Our speech-language pathologists help every child be understood, whether that's with words, signs or a device.",
         "intro": "<p>Our speech-language pathologists assess, diagnose and treat speech and language delays and disorders. We support social communication and augmentative and alternative communication (AAC), and we work closely with our audiologists when hearing is part of the picture.</p>",
-        "helps_with": "Autism spectrum disorder\nLate talkers and language delays\nApraxia of speech\nStuttering and fluency\nVoice disorders\nHearing impairment\nOral motor weakness\nDown syndrome and other genetic disorders",
+        "helps_with": "Autism spectrum disorder\nLate talkers and language delays\nApraxia of speech\nStuttering and fluency\nVoice disorders\nHearing impairment\nOral motor weakness\nFeeding challenges and picky eating\nDown syndrome and other genetic conditions",
         "what_we_offer": "Articulation and phonology\nReceptive and expressive language\nSocial communication\nAAC evaluation and support\nFluency and voice therapy\nCognitive-communication\nFeeding therapy with our OT team",
         "first_visit": "Your child's evaluation will feel like play. We'll listen, talk, read and play together, then share what we found and how therapy can help.",
     },
@@ -213,6 +213,11 @@ class Command(BaseCommand):
             hero_intro="How we protect and use your family's health information.",
         ))
 
+        insurance = add(home, StandardPage(
+            title="Insurance and Your First Visit", slug="insurance", show_in_menus=False, hero_color="teal",
+            hero_intro="What we'll check before your child's first visit, what to bring, and how long it takes to get started.",
+        ))
+
         for i, (sort, label, ftype, required, choices) in enumerate([
             (1, "Your name", "singleline", True, ""),
             (2, "Phone", "singleline", True, ""),
@@ -249,6 +254,8 @@ class Command(BaseCommand):
         settings.veterans_label = "Veterans hearing exams"
         settings.careers_page = careers
         settings.privacy_page = privacy
+        settings.insurance_page = insurance
+        settings.secure_contact_url = "https://secureform.luxsci.com/forms/18016/11369/XuRN/form.html"
         settings.save()
 
         # ---------------- Home ----------------
@@ -376,6 +383,11 @@ class Command(BaseCommand):
 
         # ---------------- Services index ----------------
         services.body = stream(
+            block("conditions", {
+                "heading": heading("Who we help", "What's going on with your child?",
+                                   "Search for a diagnosis or a worry, and see which of our therapies can help."),
+                "filter_label": "Search for a concern",
+            }),
             block("cta", {"color": "teal", "title": "Not sure where to start?",
                           "text": "Many kids benefit from more than one therapy. Call or text and we'll help you figure out the right first step.",
                           "button": link("Get started", get_started), "secondary_button": link("Contact us", contact)}),
@@ -472,6 +484,35 @@ class Command(BaseCommand):
             ]}),
         )
         get_started.save_revision().publish()
+
+        # ---------------- Insurance and first visit ----------------
+        insurance.body = stream(
+            block("checklist", {"title": "Insurance we're in network with", "color": "sky", "items": [
+                "Amerigroup", "CareSource", "Peach State", "BlueCross", "Ambetter", "Tricare", "Wellcare (Audiology only)",
+            ]}),
+            block("paragraph", "<p>Every plan above is in network for audiology. Wellcare covers audiology only, not occupational, physical or speech therapy. "
+                               "If your plan isn't listed, we're out of network with it, but we're happy to check your out-of-network benefits for you.</p>"),
+            block("heading", heading("Before your first visit", "No surprises")),
+            block("paragraph", "<p>Once you call to set up an appointment, we use your insurance information to check your benefits. Before your child's first visit, you'll know:</p>"
+                               "<ul><li>Your deductible, copay or coinsurance</li><li>Your out-of-pocket maximum</li>"
+                               "<li>Whether your plan needs prior authorization</li><li>Any limit on the number of visits</li></ul>"),
+            block("checklist", {"title": "Helpful to have ready", "color": "leaf", "items": [
+                "Your insurance card",
+                "Your child's doctor's name, so we can request a prescription (or a copy, if you already have one)",
+                "Any evaluation from the last 6 months. It may mean your child can start right in therapy.",
+                "Your child's IEP, if they get services at school",
+            ]}),
+            block("steps", {"heading": heading("From first call to first session", "How it works"), "steps": [
+                {"title": "Call or text us", "text": "We'll gather your insurance and your child's doctor's information.", "link": link()},
+                {"title": "Evaluation", "text": "Your child's therapist evaluates your child and talks with you about what they found.", "link": link()},
+                {"title": "Plan of care", "text": "The therapist writes a plan of care and sends it to your pediatrician to sign. If your plan needs authorization, we request it next.", "link": link()},
+                {"title": "Therapy begins", "text": "The whole process usually takes about two weeks. We'll call you to schedule as soon as it's done.", "link": link()},
+            ]}),
+            block("cta", {"color": "teal", "title": "Questions about coverage?",
+                          "text": "Call or text 770-917-5737 and we'll walk you through it.",
+                          "button": link("Contact us", contact), "secondary_button": link("Get started", get_started)}),
+        )
+        insurance.save_revision().publish()
 
         # ---------------- Resources ----------------
         resources.body = stream(

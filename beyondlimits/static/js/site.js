@@ -127,6 +127,27 @@
     });
   });
 
+  // "Who we help": filter the list of conditions as the visitor types
+  document.querySelectorAll("[data-conditions]").forEach(function (box) {
+    var input = box.querySelector("[data-conditions-filter]");
+    var rows = box.querySelectorAll("[data-condition]");
+    var empty = box.querySelector("[data-conditions-empty]");
+    var count = box.querySelector("[data-conditions-count]");
+    if (!input) return;
+    input.addEventListener("input", function () {
+      var words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      var shown = 0;
+      rows.forEach(function (row) {
+        var text = row.getAttribute("data-condition");
+        var match = words.every(function (w) { return text.indexOf(w) !== -1; });
+        row.hidden = !match;
+        if (match) shown += 1;
+      });
+      empty.hidden = shown !== 0;
+      count.textContent = words.length ? shown + (shown === 1 ? " match" : " matches") : "";
+    });
+  });
+
   // Back to top button
   var toTop = document.querySelector("[data-to-top]");
   if (toTop) {

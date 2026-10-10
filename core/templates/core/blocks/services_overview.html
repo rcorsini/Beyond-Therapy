@@ -12,5 +12,8 @@
             </a>
             {% endfor %}
         </div>
+        {% with index=services.first.get_parent %}{% if index %}
+        <p class="service-grid__more"><a href="{% pageurl index %}#who-we-help">{% icon "search" 18 %} Not sure which therapy? Search by your child's needs</a></p>
+        {% endif %}{% endwith %}
     </div>
 </section>

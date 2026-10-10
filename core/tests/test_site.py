@@ -11,7 +11,7 @@ class SeededSiteTests(TestCase):
         for url in [
             "/", "/about-us/", "/services/", "/services/pediatric-audiology/", "/our-providers/",
             "/our-providers/kimberly-oviedo/", "/get-started/", "/resources/", "/contact/",
-            "/careers/", "/veterans/", "/hipaa-privacy-policy/", "/search/?query=feeding",
+            "/careers/", "/veterans/", "/hipaa-privacy-policy/", "/insurance/", "/search/?query=feeding",
         ]:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 200)
@@ -28,6 +28,18 @@ class SeededSiteTests(TestCase):
         response = self.client.get("/get-started/")
         self.assertContains(response, "ST/OT Feeding Intake Form")
         self.assertContains(response, "data-finder-option")
+
+    def test_who_we_help_merges_conditions_across_services(self):
+        response = self.client.get("/services/")
+        self.assertContains(response, 'id="who-we-help"')
+        # Autism is listed on both OT and Speech, so it appears once with both chips.
+        self.assertContains(response, 'data-condition="autism spectrum disorder"', count=1)
+        row = response.content.decode().split('data-condition="autism spectrum disorder"')[1].split("</li>")[0]
+        self.assertIn("/services/pediatric-occupational-therapy/", row)
+        self.assertIn("/services/speech-language-therapy/", row)
+
+    def test_insurance_page_linked_from_footer(self):
+        self.assertContains(self.client.get("/"), 'href="/insurance/"')
 
     def test_contact_form_submits(self):
         response = self.client.post("/contact/", {
