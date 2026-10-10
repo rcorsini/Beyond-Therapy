@@ -37,6 +37,17 @@ class SeededSiteTests(TestCase):
         self.assertContains(response, "ST/OT Feeding Intake Form")
         self.assertContains(response, "data-finder-option")
 
+    def test_seeded_headshots_replace_initials(self):
+        from pages.models import TeamMember
+
+        kimberly = TeamMember.objects.get(slug="kimberly-oviedo")
+        self.assertIsNotNone(kimberly.photo)
+        self.assertTrue(kimberly.photo.has_focal_point())
+        profile = self.client.get("/our-providers/kimberly-oviedo/").content.decode()
+        photo_box = profile.split('class="profile__photo', 1)[1].split("</div>", 1)[0]
+        self.assertIn("<img", photo_box)
+        self.assertIsNone(TeamMember.objects.exclude(slug__in=["kimberly-oviedo", "karen-mobley", "ashley-moore"]).exclude(photo=None).first())
+
     def test_services_page_has_signs_cards(self):
         response = self.client.get("/services/")
         self.assertContains(response, 'id="does-this-sound-like-your-child"')

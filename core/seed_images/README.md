@@ -15,6 +15,7 @@ replace any of them later in the Wagtail admin.
 | `service-pediatric-physical-therapy.jpg` | Physical Therapy page |
 | `service-speech-language-therapy.jpg` | Speech-Language Therapy page |
 | `visit-01-building.jpg` … `visit-09-goodbye.jpg` | First visit photo story (clinic photos only, never stock) |
+| `providers/<slug>.jpg` | A provider's headshot, named like the end of their profile address (e.g. `providers/kimberly-oviedo.jpg` for /our-providers/kimberly-oviedo/). Cropped square, aimed at the upper part of a tall photo. Use 800px wide or more, and strip location data from phone photos. |
 
 Visit story files: `visit-01-building`, `visit-02-parking`, `visit-03-door`,
 `visit-04-front-desk`, `visit-05-waiting-room`, `visit-06-hallway`,

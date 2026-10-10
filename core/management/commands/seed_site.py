@@ -20,6 +20,7 @@ from django.db import transaction
 from django.utils.html import escape
 
 from wagtail.images import get_image_model
+from wagtail.images.rect import Rect
 from wagtail.models import Page, Site
 
 from core.models import ClinicSettings
@@ -74,6 +75,19 @@ def seed_image(filename, title, description=""):
 def image_id(filename, title):
     img = seed_image(filename, title)
     return img.pk if img else None
+
+
+def seed_headshot(member):
+    """Loads core/seed_images/providers/<slug>.jpg as the provider's photo, if it exists."""
+    img = seed_image(f"providers/{member.slug}.jpg", f"{member.name} headshot (starter photo)")
+    if not img:
+        return
+    if not img.has_focal_point() and img.height > img.width:
+        # Headshots are cropped square; aim at the upper part of a tall photo so the face stays in frame.
+        img.set_focal_point(Rect.from_point(img.width // 2, img.height // 3, img.width // 2, img.height // 3))
+        img.save()
+    member.photo = img
+    member.save(update_fields=["photo"])
 
 
 PROVIDERS = [
@@ -267,11 +281,12 @@ class Command(BaseCommand):
         for i, (name, creds, title, disc, clinician) in enumerate(PROVIDERS):
             p = profiles.get(name, {})
             experience = "".join(f"<p>{escape(para.strip())}</p>" for para in p.get("experience", "").split("\n\n") if para.strip())
-            TeamMember.objects.create(
+            member = TeamMember.objects.create(
                 name=name, credentials=creds, title=title, discipline=disc, is_clinician=clinician, sort_order=i,
                 intro=p.get("intro", ""), licensure="\n".join(p.get("licensure", [])),
                 education="\n".join(p.get("education", [])), experience=experience,
             )
+            seed_headshot(member)
 
         settings = ClinicSettings.load()
         settings.clinic_name = "Beyond Limits Pediatric Therapy Center"
