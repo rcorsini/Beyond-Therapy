@@ -149,6 +149,8 @@ STATIC_URL = "/static/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
+# Let Django serve uploads when no web server or file host sits in front of it.
+SERVE_MEDIA = os.environ.get("SERVE_MEDIA", "1") == "1"
 
 # Default storage settings
 # See https://docs.djangoproject.com/en/5.2/ref/settings/#std-setting-STORAGES

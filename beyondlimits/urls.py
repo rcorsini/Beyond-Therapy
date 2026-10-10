@@ -24,6 +24,15 @@ if settings.DEBUG:
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+elif settings.SERVE_MEDIA:
+    # No separate file host yet (e.g. the Render preview), so Django serves
+    # uploaded images and documents itself. Fine for a preview; for launch,
+    # move media to object storage such as S3 or Cloudinary.
+    from django.urls import re_path
+    from django.views.static import serve
+
+    urlpatterns += [re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT})]
+
 urlpatterns = urlpatterns + [
     # For anything not caught by a more specific rule above, hand over to
     # Wagtail's page serving mechanism. This should be the last pattern in
