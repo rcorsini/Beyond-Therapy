@@ -10,7 +10,6 @@
     <div class="slider__track">
         {% for block in page.slides %}{% with slide=block.value %}
         <div class="slide slide--{{ slide.background }}{% if forloop.first %} is-current{% endif %}" role="group" aria-roledescription="slide" aria-label="{{ forloop.counter }} of {{ page.slides|length }}"{% if not forloop.first %} aria-hidden="true"{% endif %} data-slide>
-            {% if slide.image %}{% image slide.image fill-1920x900-c50 format-webp class="slide__bg" alt="" %}{% else %}<div class="slide__illo">{% include "includes/illustration.html" with name=slide.illustration %}</div>{% endif %}
             <div class="container slide__inner">
                 <div class="slide__box slide__box--{{ slide.box_color }}">
                     {% if slide.eyebrow %}<p class="slide__eyebrow">{{ slide.eyebrow }}</p>{% endif %}
@@ -24,6 +23,17 @@
             </div>
         </div>
         {% endwith %}{% endfor %}
+    </div>
+    {% comment %}One shared photo frame. Each slide's photo (or illustration) sits in it, and site.js
+       breaks the outgoing one into tiles that collapse to reveal the next.{% endcomment %}
+    <div class="slider__stage" aria-hidden="true">
+        <div class="slider__frame" data-slider-frame>
+            {% for block in page.slides %}{% with slide=block.value %}
+            <div class="slider__visual{% if slide.image %} slider__visual--photo{% else %} slider__visual--{{ slide.background }}{% endif %}{% if forloop.first %} is-current{% endif %}" data-slider-visual>
+                {% if slide.image %}{% image slide.image fill-960x960-c50 format-webp alt="" %}{% else %}{% include "includes/illustration.html" with name=slide.illustration %}{% endif %}
+            </div>
+            {% endwith %}{% endfor %}
+        </div>
     </div>
     <div class="slider__butterflies" aria-hidden="true">
         <span class="bf-fly bf-fly--h1">{% include "includes/butterfly.html" %}</span>

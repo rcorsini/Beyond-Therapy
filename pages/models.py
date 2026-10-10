@@ -56,6 +56,10 @@ class ServicePage(HeroMixin, Page):
     helps_with = models.TextField(blank=True, help_text="One item per line. Conditions and needs this service helps with.")
     what_we_offer = models.TextField(blank=True, help_text="One item per line.")
     first_visit = models.TextField(blank=True, help_text="What to expect at the first visit.")
+    photo = models.ForeignKey(
+        "wagtailimages.Image", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
+        help_text="One photo of this therapy, shown beside the intro. A real photo of your team at work is best.",
+    )
     body = StreamField(BodyStreamBlock(), blank=True)
 
     content_panels = Page.content_panels + HeroMixin.hero_panels + [
@@ -64,6 +68,7 @@ class ServicePage(HeroMixin, Page):
             "Card",
         ),
         FieldPanel("intro"),
+        FieldPanel("photo"),
         FieldPanel("helps_with"),
         FieldPanel("what_we_offer"),
         FieldPanel("first_visit"),

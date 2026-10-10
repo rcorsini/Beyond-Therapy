@@ -41,6 +41,7 @@
             </div>
             {% endif %}
             {% if s.insurance_page %}<p class="contact-layout__more"><a href="{% pageurl s.insurance_page %}">Insurance and what to expect at your first visit</a></p>{% endif %}
+            {% if s.first_visit_page %}<p class="contact-layout__more"><a href="{% pageurl s.first_visit_page %}">See the clinic in photos before you come</a></p>{% endif %}
             {% if s.map_embed_url %}<div class="map"><iframe title="Map to {{ s.clinic_name }}" src="{{ s.map_embed_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>{% endif %}
         </aside>
     </div>

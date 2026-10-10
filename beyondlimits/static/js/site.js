@@ -47,6 +47,10 @@
     });
   }
 
+  document.querySelectorAll("[data-print]").forEach(function (btn) {
+    btn.addEventListener("click", function () { window.print(); });
+  });
+
   // Home slider. Rotates slowly, pauses on hover or focus, has a Pause button,
   // and never rotates on its own for visitors who prefer reduced motion.
   var slider = document.querySelector("[data-slider]");
@@ -56,8 +60,49 @@
     var pauseBtn = slider.querySelector("[data-slider-pause]");
     var current = 0, timer = null, paused = false, hovering = false;
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var frame = slider.querySelector("[data-slider-frame]");
+    var visuals = slider.querySelectorAll("[data-slider-visual]");
+    var tiles = null, tilesTimer = null;
+    var clearTiles = function () {
+      clearTimeout(tilesTimer);
+      if (tiles) { tiles.remove(); tiles = null; }
+    };
+    // Break the outgoing picture into a grid of tiles that shrink away in a
+    // checkerboard wave, revealing the incoming picture underneath.
+    var swapVisual = function (from, to) {
+      clearTiles();
+      if (!from || !to || from === to) return;
+      if (!reduce && frame) {
+        var cols = 6, rows = 6, w = frame.clientWidth, h = frame.clientHeight;
+        tiles = document.createElement("div");
+        tiles.className = "slider__tiles";
+        for (var r = 0; r < rows; r++) {
+          for (var c = 0; c < cols; c++) {
+            var x = Math.floor(c * w / cols), y = Math.floor(r * h / rows);
+            var tile = document.createElement("div");
+            tile.className = "slider__tile";
+            tile.style.cssText = "left:" + x + "px;top:" + y + "px;width:" + (Math.ceil(w / cols) + 1) + "px;height:" + (Math.ceil(h / rows) + 1) + "px;" +
+              "animation-delay:" + ((r + c) * 70 + ((r + c) % 2) * 220) + "ms";
+            var slice = from.cloneNode(true);
+            slice.removeAttribute("data-slider-visual");
+            slice.style.cssText = "position:absolute;inset:auto;left:" + (-x) + "px;top:" + (-y) + "px;width:" + w + "px;height:" + h + "px";
+            tile.appendChild(slice);
+            tiles.appendChild(tile);
+          }
+        }
+        frame.appendChild(tiles);
+        tilesTimer = setTimeout(clearTiles, 1900);
+      }
+      // Under the tiles, the incoming picture shows at once; without tiles it fades.
+      if (tiles) { from.style.transition = to.style.transition = "none"; }
+      from.classList.remove("is-current");
+      to.classList.add("is-current");
+      if (tiles) { void to.offsetWidth; from.style.transition = to.style.transition = ""; }
+    };
     var show = function (i) {
+      var before = current;
       current = (i + slides.length) % slides.length;
+      if (visuals.length) swapVisual(visuals[before], visuals[current]);
       slides.forEach(function (s, n) {
         var on = n === current;
         s.classList.toggle("is-current", on);

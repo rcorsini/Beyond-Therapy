@@ -23,6 +23,10 @@ ICON_CHOICES = [
     ("check", "Check"),
     ("flag", "Flag"),
     ("phone", "Phone"),
+    ("door", "Door"),
+    ("car", "Car"),
+    ("toilet", "Bathroom"),
+    ("users", "People"),
 ]
 
 COLOR_CHOICES = [
@@ -39,7 +43,8 @@ class LinkStructValue(blocks.StructValue):
     def url(self):
         page = self.get("page")
         if page:
-            return page.url
+            anchor = (self.get("anchor") or "").lstrip("#")
+            return f"{page.url}#{anchor}" if anchor else page.url
         return self.get("external_url") or ""
 
 
@@ -47,6 +52,7 @@ class LinkBlock(blocks.StructBlock):
     label = blocks.CharBlock(required=False)
     page = blocks.PageChooserBlock(required=False)
     external_url = blocks.URLBlock(required=False, label="Or a web address")
+    anchor = blocks.CharBlock(required=False, help_text="Optional. Jump to a section of the chosen page, e.g. who-we-help.")
 
     class Meta:
         value_class = LinkStructValue
@@ -292,6 +298,33 @@ class ConditionsBlock(blocks.StructBlock):
         return context
 
 
+class VisitStoryBlock(blocks.StructBlock):
+    """A step-by-step photo story of a first visit, written for the child.
+
+    Children who know what is coming often feel calmer. Families can look
+    through it together at home, or print it.
+    """
+
+    heading = blocks.CharBlock(default="Your first visit, one step at a time")
+    parent_note = blocks.TextBlock(required=False, help_text="A short note for grown-ups at the top.")
+    steps = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("photo", ImageChooserBlock(required=False, help_text="A real photo of this spot. Until there is one, the icon is shown.")),
+                ("icon", blocks.ChoiceBlock(choices=ICON_CHOICES, default="star")),
+                ("text", blocks.CharBlock(help_text="One or two short sentences, written as the child: 'This is the front door.'")),
+                ("alt", blocks.CharBlock(required=False, help_text="Describe the photo for screen readers, e.g. 'Glass front door with the Beyond Limits sign above it.'")),
+            ],
+            icon="image",
+        )
+    )
+
+    class Meta:
+        icon = "image"
+        label = "First visit photo story"
+        template = "core/blocks/visit_story.html"
+
+
 class BodyStreamBlock(blocks.StreamBlock):
     heading = HeadingBlock()
     paragraph = blocks.RichTextBlock(
@@ -312,6 +345,7 @@ class BodyStreamBlock(blocks.StreamBlock):
     cta = CTABannerBlock()
     form_finder = FormFinderBlock()
     conditions = ConditionsBlock()
+    visit_story = VisitStoryBlock()
 
 
 class ServicesOverviewBlock(blocks.StructBlock):
@@ -378,11 +412,12 @@ class QuickLinksBlock(blocks.StructBlock):
 
 
 class SlideBlock(blocks.StructBlock):
-    image = ImageChooserBlock(required=False, help_text="Wide photo. Without one, a playful illustration is shown.")
+    image = ImageChooserBlock(required=False, help_text="Shown in the round-topped frame on the right, cropped square around the focal point. Without one, the illustration below is shown.")
     background = blocks.ChoiceBlock(choices=COLOR_CHOICES + [("indigo", "Soft indigo")], default="indigo")
     illustration = blocks.ChoiceBlock(
         choices=[("hero", "Rainbow and blocks"), ("blocks", "Building blocks"), ("garden", "Garden"), ("team", "Team circle"), ("gym", "Therapy gym")],
         default="hero",
+        help_text="Used when no photo is chosen.",
     )
     box_color = blocks.ChoiceBlock(
         choices=[("indigo", "Indigo"), ("teal", "Green"), ("coral", "Red"), ("grape", "Grape"), ("sky", "Blue"), ("navy", "Navy")],

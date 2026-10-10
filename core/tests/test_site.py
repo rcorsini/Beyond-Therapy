@@ -48,3 +48,17 @@ class SeededSiteTests(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Thanks for reaching out")
+
+    def test_first_visit_photo_story(self):
+        response = self.client.get("/first-visit/")
+        self.assertContains(response, 'class="story__step"', count=9)
+        self.assertContains(response, "data-print")
+        for url in ["/services/pediatric-audiology/", "/contact/", "/insurance/"]:
+            with self.subTest(url=url):
+                self.assertContains(self.client.get(url), 'href="/first-visit/"')
+
+    def test_home_slides_share_one_photo_frame(self):
+        response = self.client.get("/")
+        self.assertContains(response, "data-slider-frame", count=1)
+        self.assertContains(response, "data-slider-visual", count=4)
+        self.assertContains(response, 'href="/services/#who-we-help"')

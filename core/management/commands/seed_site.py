@@ -14,10 +14,12 @@ import json
 import uuid
 from pathlib import Path
 
+from django.core.files.images import ImageFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils.html import escape
 
+from wagtail.images import get_image_model
 from wagtail.models import Page, Site
 
 from core.models import ClinicSettings
@@ -44,12 +46,34 @@ def stream(*blocks):
     return json.dumps(list(blocks))
 
 
-def link(label="", page=None, url=""):
-    return {"label": label, "page": page.pk if page else None, "external_url": url}
+def link(label="", page=None, url="", anchor=""):
+    return {"label": label, "page": page.pk if page else None, "external_url": url, "anchor": anchor}
 
 
 def heading(heading_, eyebrow="", intro=""):
     return {"eyebrow": eyebrow, "heading": heading_, "intro": intro}
+
+
+# Starter photos (stock until the clinic's own arrive) live in core/seed_images.
+# Any file that isn't there yet is skipped, and the page shows its illustration.
+SEED_IMAGES = Path(__file__).resolve().parents[2] / "seed_images"
+
+
+def seed_image(filename, title):
+    path = SEED_IMAGES / filename
+    if not path.exists():
+        return None
+    Image = get_image_model()
+    existing = Image.objects.filter(title=title).first()
+    if existing:
+        return existing
+    with path.open("rb") as f:
+        return Image.objects.create(title=title, file=ImageFile(f, name=filename))
+
+
+def image_id(filename, title):
+    img = seed_image(filename, title)
+    return img.pk if img else None
 
 
 PROVIDERS = [
@@ -179,7 +203,8 @@ class Command(BaseCommand):
         ))
         service_pages = {}
         for data in SERVICES:
-            service_pages[data["short_name"]] = add(services, ServicePage(**data))
+            photo = seed_image(f"service-{data['slug']}.jpg", f"{data['title']} (starter photo)")
+            service_pages[data["short_name"]] = add(services, ServicePage(photo=photo, **data))
         team = add(home, TeamPage(
             title="Our Providers", slug="our-providers", show_in_menus=True, hero_color="leaf",
             hero_intro="Board-certified therapists with extra pediatric training, and a front office that will know your child by name.",
@@ -213,6 +238,10 @@ class Command(BaseCommand):
             hero_intro="How we protect and use your family's health information.",
         ))
 
+        first_visit = add(home, StandardPage(
+            title="Your First Visit in Photos", slug="first-visit", show_in_menus=False, hero_color="sky",
+            hero_intro="A step-by-step photo story to look at with your child before the first appointment, so nothing is a surprise.",
+        ))
         insurance = add(home, StandardPage(
             title="Insurance and Your First Visit", slug="insurance", show_in_menus=False, hero_color="teal",
             hero_intro="What we'll check before your child's first visit, what to bring, and how long it takes to get started.",
@@ -255,29 +284,42 @@ class Command(BaseCommand):
         settings.careers_page = careers
         settings.privacy_page = privacy
         settings.insurance_page = insurance
+        settings.first_visit_page = first_visit
         settings.secure_contact_url = "https://secureform.luxsci.com/forms/18016/11369/XuRN/form.html"
         settings.save()
 
         # ---------------- Home ----------------
         home.slides = stream(
             block("slide", {
+                "image": image_id("slide-1.jpg", "Home slide 1 (starter photo)"),
                 "background": "indigo", "illustration": "hero", "box_color": "indigo",
                 "eyebrow": "Beyond Limits Pediatric Therapy Center",
                 "title": "Helping kids thrive.",
-                "text": "From birth through young adulthood.\nGrowing together, every step of the way.",
+                "text": "Founded by parents in 2014. More than 750 kids every week, from birth to 21.",
                 "button": link("New family admission forms", get_started),
                 "note": "Questions first? Call or text 770-917-5737.",
             }),
             block("slide", {
-                "background": "leaf", "illustration": "gym", "box_color": "teal",
-                "eyebrow": "Four therapies, one place",
-                "title": "Audiology, OT, PT and speech.",
-                "text": "Our therapists work as one team, so your child's care fits together.",
-                "button": link("Explore our services", services),
+                "image": image_id("slide-2.jpg", "Home slide 2 (starter photo)"),
+                "background": "leaf", "illustration": "team", "box_color": "teal",
+                "eyebrow": "Care that fits your child",
+                "title": "Autism, sensory and developmental care.",
+                "text": "Speech, OT, PT and audiology specialists who plan your child's care together.",
+                "button": link("See who we help", services, anchor="who-we-help"),
                 "note": "",
             }),
             block("slide", {
-                "background": "sky", "illustration": "team", "box_color": "grape",
+                "image": image_id("slide-3.jpg", "Home slide 3 (starter photo)"),
+                "background": "sky", "illustration": "gym", "box_color": "sky",
+                "eyebrow": "9,000 sq. ft. made for play",
+                "title": "A clinic built for kids.",
+                "text": "Two therapy gyms, two sensory gyms, feeding rooms and parent viewing windows.",
+                "button": link("Take the photo tour", first_visit),
+                "note": "",
+            }),
+            block("slide", {
+                "image": image_id("slide-4.jpg", "Home slide 4 (starter photo)"),
+                "background": "grape", "illustration": "garden", "box_color": "grape",
                 "eyebrow": "Now hiring therapists",
                 "title": "Love what you do here.",
                 "text": "Join a team of pediatric specialists who mentor each other and celebrate every win.",
@@ -508,11 +550,41 @@ class Command(BaseCommand):
                 {"title": "Plan of care", "text": "The therapist writes a plan of care and sends it to your pediatrician to sign. If your plan needs authorization, we request it next.", "link": link()},
                 {"title": "Therapy begins", "text": "The whole process usually takes about two weeks. We'll call you to schedule as soon as it's done.", "link": link()},
             ]}),
+            block("callout", {"color": "sky", "icon": "camera", "title": "Help your child know what to expect",
+                              "text": "<p>Look through our first visit photo story together before you come. It shows the building, the front desk, the waiting room and the gym, one step at a time.</p>",
+                              "button": link("See the photo story", first_visit)}),
             block("cta", {"color": "teal", "title": "Questions about coverage?",
                           "text": "Call or text 770-917-5737 and we'll walk you through it.",
                           "button": link("Contact us", contact), "secondary_button": link("Get started", get_started)}),
         )
         insurance.save_revision().publish()
+
+        # ---------------- First visit photo story ----------------
+        story_steps = [
+            ("visit-01-building.jpg", "home", "This is Beyond Limits. This is where I go for therapy.", "The Beyond Limits building and sign"),
+            ("visit-02-parking.jpg", "car", "We park the car and walk to the front door together.", "The parking lot and the path to the front door"),
+            ("visit-03-door.jpg", "door", "This is the front door. We go inside.", "The clinic's front door"),
+            ("visit-04-front-desk.jpg", "chat", "We say hello at the front desk. The people there are friendly.", "A smiling staff member at the front desk"),
+            ("visit-05-waiting-room.jpg", "book", "I wait in the waiting room. I can read or play while I wait. Sometimes waiting takes a little while, and that's okay.", "The waiting room"),
+            ("visit-06-hallway.jpg", "users", "My therapist comes to say hi. We walk down the hallway together.", "The hallway to the therapy rooms"),
+            ("visit-07-bathroom.jpg", "toilet", "If I need the bathroom, it is right here. I can ask anytime.", "The bathroom"),
+            ("visit-08-gym.jpg", "run", "We play and work in the gym. There are swings, mats and toys.", "A therapy gym with swings and mats"),
+            ("visit-09-goodbye.jpg", "heart", "When we are done, I see my grown-up again. Then we go home. I did a great job!", "The front door from inside, on the way out"),
+        ]
+        first_visit.body = stream(
+            block("visit_story", {
+                "heading": "Your first visit, one step at a time",
+                "parent_note": "Many children feel calmer when they know what will happen. Look through these pictures with your child a few times before the first visit and talk about each one. You can print them to keep at home or in the car.",
+                "steps": [
+                    {"type": "item", "value": {"photo": image_id(f, alt), "icon": icon, "text": text, "alt": alt}, "id": str(uuid.uuid4())}
+                    for f, icon, text, alt in story_steps
+                ],
+            }),
+            block("callout", {"color": "leaf", "icon": "clipboard", "title": "Paperwork and insurance",
+                              "text": "<p>What to bring, how we check your benefits, and how long it takes to get started.</p>",
+                              "button": link("Insurance and your first visit", insurance)}),
+        )
+        first_visit.save_revision().publish()
 
         # ---------------- Resources ----------------
         resources.body = stream(
