@@ -39,7 +39,7 @@
             </form>
         </div>
         <aside class="contact-layout__info">
-            <div class="info-card">
+            <div class="info-card" id="visit-or-call">
                 <h2>Visit or call</h2>
                 <p>{% icon "pin" 20 %} <span>{{ s.address_line_1 }}<br>{{ s.address_line_2 }}</span></p>
                 {% if s.phone %}<p>{% icon "phone" 20 %} <span><a href="tel:{{ s.phone_digits }}">{{ s.phone }}</a><br><small>Call or text</small></span></p>{% endif %}
@@ -55,8 +55,8 @@
                 <a class="btn btn--indigo btn--block" href="{{ s.secure_contact_url }}" target="_blank" rel="noopener">Send a secure message<span class="visually-hidden"> (opens in a new tab)</span></a>
             </div>
             {% endif %}
-            {% if s.insurance_page %}<p class="contact-layout__more"><a href="{% pageurl s.insurance_page %}">Insurance and what to expect at your first visit</a></p>{% endif %}
-            {% if s.first_visit_page %}<p class="contact-layout__more"><a href="{% pageurl s.first_visit_page %}">See the clinic in photos before you come</a></p>{% endif %}
+            {% if s.insurance_page %}<div class="contact-layout__more"><a href="{% pageurl s.insurance_page %}">Insurance and what to expect at your first visit</a></div>{% endif %}
+            {% if s.first_visit_page %}<div class="contact-layout__more"><a href="{% pageurl s.first_visit_page %}">See the clinic in photos before you come</a></div>{% endif %}
             {% if s.map_embed_url %}<div class="map"><iframe title="Map to {{ s.clinic_name }}" src="{{ s.map_embed_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>{% endif %}
         </aside>
     </div>

@@ -8,7 +8,7 @@
         <figure class="team-photo{% if not page.group_photo %} team-photo--illo{% endif %}">
             {% if page.group_photo %}{% image page.group_photo max-1600x1200 format-webp alt=page.group_photo.description|default:"Our team together" %}{% else %}{% include "includes/illustration.html" with name="team" %}{% endif %}
         </figure>
-        <div class="filter" role="group" aria-label="Filter the team by discipline" data-filter>
+        <div class="filter" id="providers" role="group" aria-label="Filter the team by discipline" data-filter>
             <button type="button" class="filter__btn is-active" aria-pressed="true" data-filter-value="all">Everyone</button>
             {% for g in groups %}<button type="button" class="filter__btn filter__btn--{{ g.color }}" aria-pressed="false" data-filter-value="{{ g.key }}">{{ g.label }}</button>{% endfor %}
         </div>

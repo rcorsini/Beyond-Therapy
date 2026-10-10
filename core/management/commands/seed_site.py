@@ -303,7 +303,7 @@ class Command(BaseCommand):
                 "eyebrow": "Beyond Limits Pediatric Therapy Center",
                 "title": "Helping kids thrive.",
                 "text": "Founded by parents in 2014. More than 750 kids every week, from birth to 21.",
-                "button": link("New family admission forms", get_started),
+                "button": link("New family admission forms", get_started, anchor="forms"),
                 "note": "Questions first? Call or text 770-917-5737.",
             }),
             block("slide", {
@@ -440,13 +440,13 @@ class Command(BaseCommand):
                 "anchor": "does-this-sound-like-your-child",
                 "cards": [
                     {"type": "item", "id": str(uuid.uuid4()), "value": {
-                        "title": "Talking and understanding", "icon": "speech", "color": "grape",
-                        "signs": "Says fewer words than other kids the same age\nIs hard for others to understand\nGets frustrated trying to tell you what they want\nStutters, or has a hoarse voice that doesn't go away",
-                        "link": link("Speech-language therapy", service_pages["Speech"])}},
-                    {"type": "item", "id": str(uuid.uuid4()), "value": {
                         "title": "Everyday tasks and senses", "icon": "hand", "color": "coral",
                         "signs": "Struggles with buttons, zippers, scissors or a pencil\nIs upset by noise, clothing tags, haircuts or messy hands\nHas a hard time calming down after big feelings\nAvoids or seeks out lots of swinging, spinning or crashing",
                         "link": link("Occupational therapy", service_pages["OT"])}},
+                    {"type": "item", "id": str(uuid.uuid4()), "value": {
+                        "title": "Talking and understanding", "icon": "speech", "color": "grape",
+                        "signs": "Says fewer words than other kids the same age\nIs hard for others to understand\nGets frustrated trying to tell you what they want\nStutters, or has a hoarse voice that doesn't go away",
+                        "link": link("Speech-language therapy", service_pages["Speech"])}},
                     {"type": "item", "id": str(uuid.uuid4()), "value": {
                         "title": "Moving and playing", "icon": "run", "color": "leaf",
                         "signs": "Sat up, crawled or walked later than expected\nTrips or falls more than other kids\nWalks on tiptoes much of the time\nTires quickly, or finds stairs, jumping or catching hard",
@@ -537,7 +537,7 @@ class Command(BaseCommand):
                         "label": "I'm a doctor or school referring a child", "description": "Sending a referral or prescription", "icon": "users",
                         "follow_up_question": "", "options": [], "forms": [],
                         "note": "<p>Fax the referral or prescription to 770-917-5740, or call 770-917-5737. We'll contact the family to get them scheduled.</p>",
-                        "button": link("Contact our office", contact),
+                        "button": link("Contact our office", contact, anchor="visit-or-call"),
                     },
                 ],
             }),

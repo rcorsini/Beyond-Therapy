@@ -5,7 +5,7 @@
         <div class="site-footer__about">
             {% include "includes/brand.html" %}
             {% if s.tagline %}<p>{{ s.tagline }}</p>{% endif %}
-            <p class="site-footer__hipaa">{% icon "shield" 18 %} HIPAA verified practice</p>
+            <div class="site-footer__hipaa">{% icon "shield" 18 %} HIPAA verified practice</div>
             <p class="site-footer__social">
                 {% if s.facebook_url %}<a href="{{ s.facebook_url }}" rel="noopener">Facebook</a>{% endif %}
                 {% if s.instagram_url %}<a href="{{ s.instagram_url }}" rel="noopener">Instagram</a>{% endif %}

@@ -13,7 +13,7 @@
             {% endfor %}
         </div>
         {% with index=services.first.get_parent %}{% if index %}
-        <p class="service-grid__more"><a href="{% pageurl index %}#does-this-sound-like-your-child">{% icon "search" 18 %} Not sure which therapy? See what to look for</a></p>
+        <div class="service-grid__more"><a href="{% pageurl index %}#does-this-sound-like-your-child">{% icon "search" 18 %} Not sure which therapy? See what to look for</a></div>
         {% endif %}{% endwith %}
     </div>
 </section>

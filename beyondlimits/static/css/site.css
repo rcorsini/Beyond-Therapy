@@ -179,9 +179,9 @@ main:focus { outline: none; }
     .site-nav {
         position: absolute; top: 100%; left: 0; right: 0; height: calc(100vh - 100%); background: var(--cream);
         flex-direction: column; align-items: stretch; gap: 16px; padding: 24px var(--gutter) 40px;
-        overflow-y: auto; transform: translateX(100%); visibility: hidden; transition: transform .25s ease, visibility .25s;
+        overflow-y: auto; opacity: 0; transform: translateY(-12px); visibility: hidden; transition: opacity .2s ease, transform .2s ease, visibility .2s;
     }
-    .nav-open .site-nav { transform: none; visibility: visible; }
+    .nav-open .site-nav { opacity: 1; transform: none; visibility: visible; }
     .nav-open .nav-toggle__open { display: none; }
     .nav-open .nav-toggle__close { display: inline; }
     .nav-open { overflow: hidden; }
@@ -327,6 +327,7 @@ main:focus { outline: none; }
 .page-hero__title { margin-bottom: 14px; }
 .page-hero__intro { font-size: clamp(1.15rem, 1.8vw, 1.35rem); max-width: 40em; }
 .page-hero__crumb { font-weight: 700; margin-bottom: 8px; }
+.page-hero__creds { display: block; font-family: var(--font-body); font-size: clamp(1.15rem, 1.8vw, 1.35rem); font-weight: 400; margin-top: .25em; }
 .page-hero__crumb a { color: inherit; }
 .page-hero__icon { flex: none; width: 96px; height: 96px; border-radius: 30px; background: #fff; display: grid; place-items: center; box-shadow: var(--shadow-pop); transform: rotate(-6deg); }
 .page-hero--sun { background: var(--sun-soft); }
@@ -491,7 +492,7 @@ main:focus { outline: none; }
 .careers-band { position: relative; background: var(--indigo); color: #fff; padding: 72px 0 clamp(96px, 10vw, 130px); margin: 80px 0 24px; }
 
 .careers-band__inner { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
-.careers-band__text p { font-size: 1.15rem; }
+.careers-band__text p:not(.eyebrow) { font-size: 1.15rem; }
 .careers-band__points { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 10px; }
 .careers-band__points li { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; }
 .careers-band__points .icon { flex: none; color: var(--sun); margin-top: 3px; }
@@ -603,7 +604,8 @@ main:focus { outline: none; }
 .site-footer__links { list-style: none; padding: 0; margin: 0; }
 .site-footer__links li { border-bottom: 1px solid #d9d9d4; padding: 8px 0; }
 .site-footer__links a { display: inline-flex; align-items: center; gap: 6px; }
-.site-footer__hipaa { font-weight: 700; }
+/* A div, not a p (WAVE reads short bold lines as possible headings), so it repeats the footer p styles. */
+.site-footer__hipaa { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 1em; font-weight: 700; }
 .site-footer__social { display: flex; gap: 14px; }
 .site-footer__bottom { border-top: 1px solid #d9d9d4; padding-top: 18px; padding-bottom: 24px; font-size: .9rem; text-align: center; }
 .site-footer__bottom p { margin: 0; }

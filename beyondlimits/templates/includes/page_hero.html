@@ -1,7 +1,7 @@
 {% load site_tags %}
 <section class="page-hero page-hero--{{ page.hero_color|default:'sun' }}">
     <div class="container page-hero__inner">
-        {% if page.get_parent.depth > 2 %}<p class="page-hero__crumb"><a href="{{ page.get_parent.url }}">{{ page.get_parent.title }}</a></p>{% endif %}
+        {% if page.get_parent.depth > 2 %}<nav class="page-hero__crumb" aria-label="Breadcrumb"><a href="{{ page.get_parent.url }}">{{ page.get_parent.title }}</a></nav>{% endif %}
         <h1 class="page-hero__title">{% block hero_title %}{{ page.title }}{% endblock %}</h1>
         {% if page.hero_intro %}<p class="page-hero__intro">{{ page.hero_intro }}</p>{% endif %}
         {{ hero_extra|default:"" }}

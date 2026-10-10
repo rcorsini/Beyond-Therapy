@@ -5,9 +5,8 @@
 {% block content %}
 <section class="page-hero page-hero--{{ member.color }}">
     <div class="container page-hero__inner">
-        <p class="page-hero__crumb"><a href="{% pageurl page %}">{{ page.title }}</a></p>
-        <h1 class="page-hero__title">{{ member.name }}</h1>
-        {% if member.credentials %}<p class="page-hero__intro">{{ member.credentials }}</p>{% endif %}
+        <nav class="page-hero__crumb" aria-label="Breadcrumb"><a href="{% pageurl page %}">{{ page.title }}</a></nav>
+        <h1 class="page-hero__title">{{ member.name }}{% if member.credentials %}<span class="visually-hidden">,</span> <span class="page-hero__creds">{{ member.credentials }}</span>{% endif %}</h1>
     </div>
     {% include "includes/wave.html" %}
 </section>
@@ -24,7 +23,7 @@
         {% if member.education_list %}<h2>Education</h2><ul>{% for l in member.education_list %}<li>{{ l }}</li>{% endfor %}</ul>{% endif %}
         {% if member.experience %}<h2>Clinical experience</h2>{{ member.experience|richtext }}{% endif %}
         {% if not member.intro and not member.bio and not member.licensure_list and not member.education_list and not member.experience %}<p>{{ member.name }} is part of our {{ member.get_discipline_display|lower }} team. A full profile is coming soon.</p>{% endif %}
-        <p><a class="btn btn--ghost btn--small" href="{% pageurl page %}">Back to all providers</a></p>
+        <p><a class="btn btn--ghost btn--small" href="{% pageurl page %}#providers">Back to all providers</a></p>
     </div>
 </div>
 {% if teammates %}
