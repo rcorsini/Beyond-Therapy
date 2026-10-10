@@ -1,14 +1,20 @@
 def client_ip(request):
     """The visitor's address for login lockout.
 
-    On Render the app sits behind a proxy, so REMOTE_ADDR is the proxy. This
-    uses the last X-Forwarded-For entry because earlier entries can be faked by
-    the visitor. Render may append its own proxy address there, which would
-    make lockout per username instead of per username and address. That fails
-    safe (no extra guesses), but it hasn't been checked on Render yet: open
-    /admin/address-check/ on the live site to see which header holds the
-    visitor's real address, then switch to it here.
+    On Render a request passes through Cloudflare, then Render's proxy, so
+    REMOTE_ADDR and the last X-Forwarded-For entry are Render's own addresses
+    (checked on the preview, 2026-10-10). Cloudflare puts the address that
+    connected to it in CF-Connecting-IP and True-Client-IP, replacing anything
+    the visitor sent, so those can't be faked. Earlier X-Forwarded-For entries
+    can be, so they're never used.
+
+    If the site moves to a host that isn't behind Cloudflare, those two headers
+    could be faked there: drop them and check what the new host sends.
     """
+    for header in ("HTTP_CF_CONNECTING_IP", "HTTP_TRUE_CLIENT_IP"):
+        address = request.META.get(header, "").strip()
+        if address:
+            return address
     forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
     if forwarded:
         return forwarded.split(",")[-1].strip()

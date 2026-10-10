@@ -102,12 +102,26 @@ class AdminLockoutTests(TestCase):
     def test_django_admin_is_not_public(self):
         self.assertEqual(self.client.get("/django-admin/").status_code, 404)
 
-    def test_address_check_is_staff_only_and_shows_the_lockout_address(self):
+    def test_lockout_tracks_each_visitor_by_their_cloudflare_address(self):
         from django.contrib.auth import get_user_model
 
-        self.assertEqual(self.client.get("/admin/address-check/").status_code, 302)
-        user = get_user_model().objects.create_superuser("staff", "staff@example.com", "right-password-123")
-        self.client.force_login(user)
-        response = self.client.get("/admin/address-check/", HTTP_X_FORWARDED_FOR="203.0.113.7, 10.0.0.1")
-        self.assertContains(response, "The lockout sees you as: <strong>10.0.0.1</strong>", html=False)
-        self.assertContains(response, "203.0.113.7, 10.0.0.1")
+        get_user_model().objects.create_superuser("staff", "staff@example.com", "right-password-123")
+        # What Render sends: the visitor, a Cloudflare edge, then Render's proxy.
+        stranger = {"HTTP_CF_CONNECTING_IP": "198.51.100.9", "HTTP_X_FORWARDED_FOR": "198.51.100.9, 172.71.147.234, 10.24.43.5"}
+        admin = {"HTTP_CF_CONNECTING_IP": "203.0.113.7", "HTTP_X_FORWARDED_FOR": "203.0.113.7, 172.71.147.234, 10.24.43.5"}
+        for _ in range(5):
+            self.client.post("/admin/login/", {"username": "staff", "password": "wrong"}, **stranger)
+        self.assertEqual(self.client.post("/admin/login/", {"username": "staff", "password": "right-password-123"}, **stranger).status_code, 429)
+        self.client.post("/admin/login/", {"username": "staff", "password": "right-password-123"}, **admin)
+        self.assertIn("_auth_user_id", self.client.session)
+
+    def test_client_ip_ignores_faked_forwarded_entries(self):
+        from django.test import RequestFactory
+
+        from core.security import client_ip
+
+        factory = RequestFactory()
+        faked = factory.get("/", HTTP_CF_CONNECTING_IP="203.0.113.7", HTTP_X_FORWARDED_FOR="1.2.3.4, 203.0.113.7, 172.71.147.234, 10.24.43.5")
+        self.assertEqual(client_ip(faked), "203.0.113.7")
+        no_cloudflare = factory.get("/", HTTP_X_FORWARDED_FOR="1.2.3.4, 10.0.0.1")
+        self.assertEqual(client_ip(no_cloudflare), "10.0.0.1")
