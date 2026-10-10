@@ -7,7 +7,9 @@ replace any of them later in the Wagtail admin.
 
 | File | Where it shows |
 |---|---|
-| `slide-1.jpg` … `slide-4.jpg` | Home slider frame (cropped square) |
+| `slide-1.jpg` … `slide-3.jpg` | Home slider frame (cropped square) |
+| `team-group.jpg` | The clinic's real team photo: home slide 4 and the top of Our Providers. Never stock. |
+| `providers-standin.jpg` | Stand-in team photo Russell supplied for the top of Our Providers only, until `team-group.jpg` exists. Not used on the slider. |
 | `service-pediatric-audiology.jpg` | Audiology page, beside "Your first visit" |
 | `service-pediatric-occupational-therapy.jpg` | Occupational Therapy page |
 | `service-pediatric-physical-therapy.jpg` | Physical Therapy page |

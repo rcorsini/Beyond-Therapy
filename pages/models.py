@@ -1,5 +1,5 @@
 from django.db import models
-from django.http import Http404
+from django.http import Http404, HttpResponseNotAllowed
 from django.template.response import TemplateResponse
 from django.utils.text import slugify
 
@@ -58,7 +58,8 @@ class ServicePage(HeroMixin, Page):
     first_visit = models.TextField(blank=True, help_text="What to expect at the first visit.")
     photo = models.ForeignKey(
         "wagtailimages.Image", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
-        help_text="One photo of this therapy, shown beside the intro. A real photo of your team at work is best.",
+        help_text="One photo of this therapy, shown beside 'Your first visit'. It's cropped square around the image's "
+        "focal point, so set the focal point on the image if faces get cut off. A real photo of your team at work is best.",
     )
     body = StreamField(BodyStreamBlock(), blank=True)
 
@@ -106,7 +107,10 @@ class TeamMember(index.Indexed, models.Model):
     credentials = models.CharField(max_length=80, blank=True, help_text="e.g. 'M.S., CCC-SLP'")
     title = models.CharField(max_length=100, blank=True, help_text="e.g. 'Clinical Coordinator'")
     discipline = models.CharField(max_length=20, choices=DISCIPLINE_CHOICES)
-    photo = models.ForeignKey("wagtailimages.Image", null=True, blank=True, on_delete=models.SET_NULL, related_name="+")
+    photo = models.ForeignKey(
+        "wagtailimages.Image", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
+        help_text="Cropped square around the image's focal point. A head-and-shoulders photo works best.",
+    )
     bio = models.TextField(blank=True, help_text="One or two sentences for the team card.")
     intro = models.CharField(max_length=200, blank=True, help_text="Opening line on the profile, e.g. 'Meet Kimberly!'")
     licensure = models.TextField(blank=True, help_text="Licenses and certifications, one per line.")
@@ -169,6 +173,12 @@ class TeamMember(index.Indexed, models.Model):
 
 
 class TeamPage(RoutablePageMixin, HeroMixin, Page):
+    group_photo = models.ForeignKey(
+        "wagtailimages.Image", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
+        help_text="A photo of the whole team, shown above the providers. Any shape works: the whole photo is shown, "
+        "never cropped. Wider than tall, at least 1600 pixels across, looks best. Fill in the image's Description "
+        "for screen readers. Until there is one, an illustration is shown.",
+    )
     body = StreamField(BodyStreamBlock(), blank=True)
 
     content_panels = Page.content_panels + HeroMixin.hero_panels + [
@@ -178,6 +188,7 @@ class TeamPage(RoutablePageMixin, HeroMixin, Page):
                     "This page lists them automatically.</p>",
             heading="Providers",
         ),
+        FieldPanel("group_photo"),
         FieldPanel("body"),
     ]
     max_count = 1
@@ -301,3 +312,9 @@ class ContactPage(HeroMixin, AbstractEmailForm):
         context = super().get_context(request, *args, **kwargs)
         context["sent"] = request.GET.get("sent") == "1"
         return context
+
+    def serve(self, request, *args, **kwargs):
+        # With LuxSci on, messages must never be posted (and saved or logged) here.
+        if request.method == "POST" and self.luxsci_form_id:
+            return HttpResponseNotAllowed(["GET"])
+        return super().serve(request, *args, **kwargs)

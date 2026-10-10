@@ -59,7 +59,7 @@ def heading(heading_, eyebrow="", intro=""):
 SEED_IMAGES = Path(__file__).resolve().parents[2] / "seed_images"
 
 
-def seed_image(filename, title):
+def seed_image(filename, title, description=""):
     path = SEED_IMAGES / filename
     if not path.exists():
         return None
@@ -68,7 +68,7 @@ def seed_image(filename, title):
     if existing:
         return existing
     with path.open("rb") as f:
-        return Image.objects.create(title=title, file=ImageFile(f, name=filename))
+        return Image.objects.create(title=title, description=description, file=ImageFile(f, name=filename))
 
 
 def image_id(filename, title):
@@ -209,6 +209,10 @@ class Command(BaseCommand):
             service_pages[data["short_name"]] = add(services, ServicePage(photo=photo, **data))
         team = add(home, TeamPage(
             title="Our Providers", slug="our-providers", show_in_menus=True, hero_color="leaf",
+            # The clinic's real team photo when it arrives; until then Russell's stand-in, here only.
+            group_photo=seed_image("team-group.jpg", "Team photo (starter photo)")
+            or seed_image("providers-standin.jpg", "Providers team photo stand-in (starter photo)",
+                          "A team of nine therapists smiling together in a pediatric therapy gym"),
             hero_intro="Board-certified therapists with extra pediatric training, and a front office that will know your child by name.",
         ))
         get_started = add(home, StandardPage(
@@ -254,7 +258,7 @@ class Command(BaseCommand):
             (1, "Your name", "singleline", True, ""),
             (2, "Phone", "singleline", True, ""),
             (3, "Email", "email", True, ""),
-            (4, "I'm interested in", "dropdown", False, "Audiology\nOccupational Therapy\nPhysical Therapy\nSpeech-Language Therapy\nNot sure yet\nVeterans hearing evaluation\nCareers"),
+            (4, "I'm interested in", "dropdown", False, "Not sure yet\nAudiology\nOccupational Therapy\nPhysical Therapy\nSpeech-Language Therapy\nVeterans hearing evaluation\nCareers"),
             (5, "How can we help?", "multiline", True, ""),
         ]):
             ContactFormField.objects.create(page=contact, sort_order=sort, label=label, field_type=ftype, required=required, choices=choices)
@@ -308,7 +312,7 @@ class Command(BaseCommand):
                 "eyebrow": "Care that fits your child",
                 "title": "Autism, sensory and developmental care.",
                 "text": "Speech, OT, PT and audiology specialists who plan your child's care together.",
-                "button": link("See who we help", services, anchor="who-we-help"),
+                "button": link("See what to look for", services, anchor="does-this-sound-like-your-child"),
                 "note": "",
             }),
             block("slide", {
@@ -321,7 +325,8 @@ class Command(BaseCommand):
                 "note": "",
             }),
             block("slide", {
-                "image": image_id("slide-4.jpg", "Home slide 4 (starter photo)"),
+                # The clinic's real team photo only: a stock "team" would pass strangers off as staff.
+                "image": image_id("team-group.jpg", "Team photo (starter photo)"),
                 "background": "grape", "illustration": "garden", "box_color": "grape",
                 "eyebrow": "Now hiring therapists",
                 "title": "Love what you do here.",
@@ -428,10 +433,37 @@ class Command(BaseCommand):
 
         # ---------------- Services index ----------------
         services.body = stream(
-            block("conditions", {
-                "heading": heading("Who we help", "What's going on with your child?",
-                                   "Search for a diagnosis or a worry, and see which of our therapies can help."),
-                "filter_label": "Search for a concern",
+            block("signs", {
+                "heading": heading("Does this sound like your child?", "Not sure where to start?",
+                                   "You know your child best. If a few of these sound familiar, that therapy is a good place to begin. "
+                                   "Many kids benefit from more than one, and we'll help you sort it out."),
+                "anchor": "does-this-sound-like-your-child",
+                "cards": [
+                    {"type": "item", "id": str(uuid.uuid4()), "value": {
+                        "title": "Talking and understanding", "icon": "speech", "color": "grape",
+                        "signs": "Says fewer words than other kids the same age\nIs hard for others to understand\nGets frustrated trying to tell you what they want\nStutters, or has a hoarse voice that doesn't go away",
+                        "link": link("Speech-language therapy", service_pages["Speech"])}},
+                    {"type": "item", "id": str(uuid.uuid4()), "value": {
+                        "title": "Everyday tasks and senses", "icon": "hand", "color": "coral",
+                        "signs": "Struggles with buttons, zippers, scissors or a pencil\nIs upset by noise, clothing tags, haircuts or messy hands\nHas a hard time calming down after big feelings\nAvoids or seeks out lots of swinging, spinning or crashing",
+                        "link": link("Occupational therapy", service_pages["OT"])}},
+                    {"type": "item", "id": str(uuid.uuid4()), "value": {
+                        "title": "Moving and playing", "icon": "run", "color": "leaf",
+                        "signs": "Sat up, crawled or walked later than expected\nTrips or falls more than other kids\nWalks on tiptoes much of the time\nTires quickly, or finds stairs, jumping or catching hard",
+                        "link": link("Physical therapy", service_pages["PT"])}},
+                    {"type": "item", "id": str(uuid.uuid4()), "value": {
+                        "title": "Eating and mealtimes", "icon": "heart", "color": "sun",
+                        "signs": "Eats only a handful of foods\nGags, coughs or chokes often while eating\nHas trouble moving from purees to solid foods\nMealtimes are a daily struggle",
+                        "link": link("Feeding therapy (OT and speech)", service_pages["OT"])}},
+                    {"type": "item", "id": str(uuid.uuid4()), "value": {
+                        "title": "Hearing and listening", "icon": "ear", "color": "sky",
+                        "signs": "Doesn't respond to their name or to sounds\nTurns the TV up loud or often says \"what?\"\nNeeds a recheck after a newborn hearing screening\nHas a lot of ear infections",
+                        "link": link("Audiology", service_pages["Audiology"])}},
+                    {"type": "item", "id": str(uuid.uuid4()), "value": {
+                        "title": "Autism, or just not sure", "icon": "puzzle", "color": "teal",
+                        "signs": "Your child was recently diagnosed with autism\nPlays alone, or the same way over and over\nRarely points, waves or looks at you to share something\nSomething feels different, and you'd like a second opinion",
+                        "link": link("Call or text us to talk it through", contact)}},
+                ],
             }),
             block("cta", {"color": "teal", "title": "Not sure where to start?",
                           "text": "Many kids benefit from more than one therapy. Call or text and we'll help you figure out the right first step.",

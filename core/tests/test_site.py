@@ -1,5 +1,13 @@
 from django.core.management import call_command
 from django.test import TestCase
+from wagtail.contrib.forms.models import FormSubmission
+
+from pages.models import ContactPage
+
+CONTACT_POST = {
+    "your_name": "Test Parent", "phone": "555-555-5555", "email": "parent@example.com",
+    "im_interested_in": "Not sure yet", "how_can_we_help": "Hello",
+}
 
 
 class SeededSiteTests(TestCase):
@@ -29,25 +37,31 @@ class SeededSiteTests(TestCase):
         self.assertContains(response, "ST/OT Feeding Intake Form")
         self.assertContains(response, "data-finder-option")
 
-    def test_who_we_help_merges_conditions_across_services(self):
+    def test_services_page_has_signs_cards(self):
         response = self.client.get("/services/")
-        self.assertContains(response, 'id="who-we-help"')
-        # Autism is listed on both OT and Speech, so it appears once with both chips.
-        self.assertContains(response, 'data-condition="autism spectrum disorder"', count=1)
-        row = response.content.decode().split('data-condition="autism spectrum disorder"')[1].split("</li>")[0]
-        self.assertIn("/services/pediatric-occupational-therapy/", row)
-        self.assertIn("/services/speech-language-therapy/", row)
+        self.assertContains(response, 'id="does-this-sound-like-your-child"')
+        self.assertContains(response, 'class="signs__card ', count=6)
+        self.assertContains(response, 'href="/services/speech-language-therapy/"')
+        self.assertNotContains(response, "data-conditions")
 
     def test_insurance_page_linked_from_footer(self):
         self.assertContains(self.client.get("/"), 'href="/insurance/"')
 
-    def test_contact_form_submits(self):
-        response = self.client.post("/contact/", {
-            "your_name": "Test Parent", "phone": "555-555-5555", "email": "parent@example.com",
-            "im_interested_in": "Not sure yet", "how_can_we_help": "Hello",
-        })
+    def test_contact_form_submits_without_luxsci(self):
+        ContactPage.objects.update(luxsci_form_id="")
+        response = self.client.post("/contact/", CONTACT_POST)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Thanks for reaching out")
+
+    def test_contact_page_refuses_direct_posts_with_luxsci(self):
+        response = self.client.post("/contact/", CONTACT_POST)
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(FormSubmission.objects.exists())
+
+    def test_contact_dropdown_starts_on_not_sure(self):
+        html = self.client.get("/contact/").content.decode()
+        first_option = html.split('name="im_interested_in"')[1].split("<option")[1]
+        self.assertIn("Not sure yet", first_option)
 
     def test_first_visit_photo_story(self):
         response = self.client.get("/first-visit/")
@@ -61,13 +75,29 @@ class SeededSiteTests(TestCase):
         response = self.client.get("/")
         self.assertContains(response, "data-slider-frame", count=1)
         self.assertContains(response, "data-slider-visual", count=4)
-        self.assertContains(response, 'href="/services/#who-we-help"')
+        self.assertContains(response, 'href="/services/#does-this-sound-like-your-child"')
 
     def test_contact_form_posts_to_luxsci(self):
         response = self.client.get("/contact/")
         self.assertContains(response, 'name="secureform"')
         self.assertContains(response, 'action="https://secureform.luxsci.com/perl/post/18249-26830-Zg4g"')
-        self.assertContains(response, 'onsubmit="return secureform_submit();"')
+        self.assertContains(response, "return secureform_submit();")
+        self.assertContains(response, 'id="secureform-missing"')
         self.assertContains(response, "secureform.php?v=1&amp;c=18249-26830-Zg4g&amp;f=secureform")
         self.assertNotContains(response, "csrfmiddlewaretoken")
         self.assertContains(self.client.get("/contact/?sent=1"), 'class="form-thanks"')
+
+
+class AdminLockoutTests(TestCase):
+    def test_five_wrong_passwords_lock_the_login(self):
+        from django.contrib.auth import get_user_model
+
+        get_user_model().objects.create_superuser("staff", "staff@example.com", "right-password-123")
+        for _ in range(5):
+            self.client.post("/admin/login/", {"username": "staff", "password": "wrong"})
+        response = self.client.post("/admin/login/", {"username": "staff", "password": "right-password-123"})
+        self.assertEqual(response.status_code, 429)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_django_admin_is_not_public(self):
+        self.assertEqual(self.client.get("/django-admin/").status_code, 404)

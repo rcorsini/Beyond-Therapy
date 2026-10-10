@@ -52,7 +52,7 @@ class LinkBlock(blocks.StructBlock):
     label = blocks.CharBlock(required=False)
     page = blocks.PageChooserBlock(required=False)
     external_url = blocks.URLBlock(required=False, label="Or a web address")
-    anchor = blocks.CharBlock(required=False, help_text="Optional. Jump to a section of the chosen page, e.g. who-we-help.")
+    anchor = blocks.CharBlock(required=False, help_text="Optional. Jump to a section of the chosen page, e.g. does-this-sound-like-your-child.")
 
     class Meta:
         value_class = LinkStructValue
@@ -298,6 +298,34 @@ class ConditionsBlock(blocks.StructBlock):
         return context
 
 
+class SignsBlock(blocks.StructBlock):
+    """"Does this sound like your child?" cards: everyday signs a parent might
+    notice, each pointing to the therapy that helps."""
+
+    heading = HeadingBlock()
+    anchor = blocks.CharBlock(
+        default="does-this-sound-like-your-child",
+        help_text="Lets buttons jump straight to this section. Change it only if you also update those links.",
+    )
+    cards = blocks.ListBlock(
+        blocks.StructBlock(
+            [
+                ("title", blocks.CharBlock()),
+                ("icon", blocks.ChoiceBlock(choices=ICON_CHOICES, default="star")),
+                ("color", blocks.ChoiceBlock(choices=COLOR_CHOICES, default="sky")),
+                ("signs", blocks.TextBlock(help_text="One sign per line, in the words a parent would use.")),
+                ("link", LinkBlock()),
+            ],
+            icon="help",
+        )
+    )
+
+    class Meta:
+        icon = "help"
+        label = "Does this sound like your child?"
+        template = "core/blocks/signs.html"
+
+
 class VisitStoryBlock(blocks.StructBlock):
     """A step-by-step photo story of a first visit, written for the child.
 
@@ -310,7 +338,7 @@ class VisitStoryBlock(blocks.StructBlock):
     steps = blocks.ListBlock(
         blocks.StructBlock(
             [
-                ("photo", ImageChooserBlock(required=False, help_text="A real photo of this spot. Until there is one, the icon is shown.")),
+                ("photo", ImageChooserBlock(required=False, help_text="A real photo of this spot, cropped to a 4:3 rectangle around the image's focal point. Until there is one, the icon is shown.")),
                 ("icon", blocks.ChoiceBlock(choices=ICON_CHOICES, default="star")),
                 ("text", blocks.CharBlock(help_text="One or two short sentences, written as the child: 'This is the front door.'")),
                 ("alt", blocks.CharBlock(required=False, help_text="Describe the photo for screen readers, e.g. 'Glass front door with the Beyond Limits sign above it.'")),
@@ -346,6 +374,7 @@ class BodyStreamBlock(blocks.StreamBlock):
     form_finder = FormFinderBlock()
     conditions = ConditionsBlock()
     visit_story = VisitStoryBlock()
+    signs = SignsBlock()
 
 
 class ServicesOverviewBlock(blocks.StructBlock):

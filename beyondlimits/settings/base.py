@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "axes",
 ]
 
 MIDDLEWARE = [
@@ -63,7 +64,22 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
+    # Last, as django-axes asks.
+    "axes.middleware.AxesMiddleware",
 ]
+
+# Admin login lockout (django-axes): after 5 wrong passwords for the same
+# username from the same address, that pair is locked out for an hour.
+# An admin can unlock early under Settings > Users, or with `manage.py axes_reset`.
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1  # hours
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_RESET_ON_SUCCESS = True
+AXES_CLIENT_IP_CALLABLE = "core.security.client_ip"
 
 ROOT_URLCONF = "beyondlimits.urls"
 

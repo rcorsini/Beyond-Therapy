@@ -13,7 +13,10 @@
             {% if page.luxsci_form_id %}
             {# LuxSci Secure Form: HIPAA-secure delivery and spam protection. The script must load, and the form name must match f= in its URL. #}
             <script src="{{ page.luxsci_script_url }}"></script>
-            <form class="form" name="secureform" method="post" action="{{ page.luxsci_action_url }}" onsubmit="return secureform_submit();">
+            <noscript><p class="form__error">Our secure form needs JavaScript turned on. Please call or text {{ s.phone|default:"us" }} instead.</p></noscript>
+            {# If LuxSci's script is blocked, LuxSci would reject the message, so stop and say so instead of losing it. #}
+            <form class="form" name="secureform" method="post" action="{{ page.luxsci_action_url }}" onsubmit="if (typeof secureform_submit === 'function') return secureform_submit(); var m = document.getElementById('secureform-missing'); m.hidden = false; m.focus(); return false;">
+                <p class="form__error" id="secureform-missing" role="alert" tabindex="-1" hidden>Our secure form couldn't load, so your message wasn't sent. Please call or text {{ s.phone|default:"us" }}.</p>
             {% else %}
             <form class="form" action="{% pageurl page %}" method="post" novalidate>
                 {% csrf_token %}

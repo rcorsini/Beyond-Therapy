@@ -1,0 +1,18 @@
+{% load site_tags %}
+<section class="section signs block" id="{{ value.anchor }}">
+    <div class="container">
+        {% include "core/blocks/heading.html" with value=value.heading align="center" %}
+        <ul class="signs__grid" role="list">
+            {% for card in value.cards %}
+            <li class="signs__card signs__card--{{ card.color }}">
+                <span class="signs__icon">{% icon card.icon 30 %}</span>
+                <h3 class="signs__title">{{ card.title }}</h3>
+                <ul class="signs__list">
+                    {% for sign in card.signs|split_lines %}<li>{% icon "check" 18 %}<span>{{ sign }}</span></li>{% endfor %}
+                </ul>
+                {% if card.link.url %}<a class="btn btn--indigo btn--small signs__btn" href="{{ card.link.url }}">{{ card.link.label|default:"Learn more" }}</a>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>

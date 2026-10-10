@@ -842,3 +842,30 @@ a.doc-list__type:hover { text-decoration: underline; }
 .form-thanks { display: flex; gap: 14px; align-items: flex-start; background: var(--lime-soft); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 24px; font-size: 1.1rem; }
 .form-thanks .icon { flex: none; color: var(--lime-deep); }
 .form-thanks p { margin: 0; }
+
+/* ---------- Does this sound like your child? ---------- */
+.signs { background: var(--indigo-soft); }
+.signs__grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
+.signs__card { background: #fff; border-radius: 26px; padding: 26px 26px 28px; box-shadow: var(--shadow); display: flex; flex-direction: column; border-top: 6px solid var(--card-accent, var(--indigo)); }
+.signs__icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--card-soft, var(--indigo-soft)); color: var(--card-deep, var(--indigo)); margin-bottom: 14px; }
+.signs__title { font-size: 1.35rem; margin-bottom: 12px; }
+.signs__list { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 10px; }
+.signs__list li { display: flex; gap: 10px; align-items: flex-start; line-height: 1.45; }
+.signs__list .icon { flex: none; margin-top: 3px; color: var(--card-deep, var(--indigo)); }
+.signs__btn { margin-top: auto; align-self: flex-start; }
+.signs__card--sky { --card-accent: var(--sky); --card-soft: var(--sky-soft); --card-deep: var(--sky-deep); }
+.signs__card--coral { --card-accent: var(--coral); --card-soft: var(--coral-soft); --card-deep: var(--coral-deep); }
+.signs__card--teal { --card-accent: var(--teal); --card-soft: var(--teal-soft); --card-deep: var(--teal-deep); }
+.signs__card--grape { --card-accent: var(--grape); --card-soft: var(--grape-soft); --card-deep: var(--grape-deep); }
+.signs__card--leaf { --card-accent: var(--leaf); --card-soft: var(--leaf-soft); --card-deep: var(--leaf-deep); }
+.signs__card--sun { --card-accent: var(--sun); --card-soft: var(--sun-soft); --card-deep: #8a5300; }
+
+/* ---------- Our Providers: whole-team photo ---------- */
+/* Any shape of photo works: it's shown whole (never cropped), scaled to the
+   column, and a tall photo is capped in height with soft side margins. */
+.team-photo { margin: 0 auto 40px; max-width: 980px; width: fit-content; border-radius: 56px 56px 24px 24px; overflow: hidden; border: 10px solid #fff; box-shadow: 0 0 0 5px var(--lime), var(--shadow); background: var(--leaf-soft); }
+.team-photo img { display: block; width: auto; max-width: 100%; height: auto; max-height: 620px; }
+.team-photo--illo { background: var(--leaf-soft); display: grid; place-items: center; padding: 20px; }
+.team-photo--illo .illo { width: min(440px, 80%); height: auto; }
+.team-photo--illo { width: auto; }
+@media (max-width: 640px) { .team-photo { border-radius: 32px 32px 16px 16px; border-width: 6px; } }
