@@ -23,9 +23,9 @@ Open http://localhost:8000 for the site and http://localhost:8000/admin for the 
 
 ## Preview on Render
 
-`render.yaml` sets up a free preview copy that redeploys on every push to `feature/wagtail-site`. In Render, choose **New > Blueprint**, pick this repository and that branch, and fill in an admin username, email and password when asked. The preview is hidden from search engines (`SITE_NOINDEX=1`).
+`render.yaml` sets up a preview copy that redeploys on every push to `feature/wagtail-site`: a $7 web service, a $6 Render Postgres database and a 1 GB persistent disk for uploads ($0.25), about $13.25 a month. In Render, choose **New > Blueprint**, pick this repository and that branch, and fill in an admin username, email and password when asked. The preview is hidden from search engines (`SITE_NOINDEX=1`).
 
-The free plan wipes the disk on each deploy, so the preview rebuilds itself from the seed data every time. Anything changed in the admin, and any uploaded image, is lost on the next deploy. For a copy that keeps edits, add a Render Postgres database or a persistent disk.
+Pages live in Postgres and uploads on the disk, so edits made in the admin survive deploys. `seed_site` only fills an empty database, so later changes to the seed data don't reach an existing site; add that content in the admin instead. The admin login from the environment is created once; after that, change the password in the admin. Because of the disk, each deploy has a short gap while the old copy stops.
 
 ## What editors can change
 
