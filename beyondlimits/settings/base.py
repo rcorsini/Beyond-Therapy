@@ -111,12 +111,21 @@ WSGI_APPLICATION = "beyondlimits.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.environ.get("SQLITE_PATH", BASE_DIR / "db.sqlite3"),
+# Postgres when the host provides DATABASE_URL (Render does, from the database
+# in render.yaml); otherwise a local SQLite file.
+if os.environ.get("DATABASE_URL"):
+    import dj_database_url
+
+    DATABASES = {"default": dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=600, conn_health_checks=True)}
+    # Wagtail's search index uses Postgres full-text search, which needs this app.
+    INSTALLED_APPS.append("django.contrib.postgres")
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.environ.get("SQLITE_PATH", BASE_DIR / "db.sqlite3"),
+        }
     }
-}
 
 
 # Password validation
@@ -165,7 +174,9 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "static"
 STATIC_URL = "/static/"
 
-MEDIA_ROOT = BASE_DIR / "media"
+# Uploaded images and documents. On Render this points at the persistent disk
+# (see render.yaml), since the rest of the server's files are wiped on each deploy.
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", BASE_DIR / "media")
 MEDIA_URL = "/media/"
 # Let Django serve uploads when no web server or file host sits in front of it.
 SERVE_MEDIA = os.environ.get("SERVE_MEDIA", "1") == "1"
