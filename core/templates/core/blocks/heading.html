@@ -1,0 +1,6 @@
+<div class="section-heading{% if align %} section-heading--{{ align }}{% endif %}">
+    {% if value.eyebrow %}<p class="eyebrow">{{ value.eyebrow }}</p>{% endif %}
+    <h2>{{ value.heading }}</h2>
+    <div class="divider" aria-hidden="true"><span></span><span></span><span></span></div>
+    {% if value.intro %}<p class="section-heading__intro">{{ value.intro }}</p>{% endif %}
+</div>

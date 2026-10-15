@@ -1,0 +1,25 @@
+{% load wagtailcore_tags site_tags %}
+<section class="section conditions block" id="who-we-help" data-conditions>
+    <div class="container">
+        {% include "core/blocks/heading.html" with value=value.heading align="center" %}
+        <div class="conditions__search">
+            <label for="conditions-filter">{{ value.filter_label|default:"Search for a concern" }}</label>
+            <div class="conditions__input">
+                {% icon "search" 20 %}
+                <input id="conditions-filter" type="search" autocomplete="off" placeholder="Try autism, toe walking or picky eating" data-conditions-filter>
+            </div>
+        </div>
+        <ul class="conditions__list" role="list">
+            {% for c in conditions %}
+            <li class="conditions__item" data-condition="{{ c.name|lower }}">
+                <span class="conditions__name">{{ c.name }}</span>
+                <span class="conditions__services">
+                    {% for s in c.services %}<a class="chip chip--{{ s.hero_color }}" href="{% pageurl s %}">{% icon s.icon 16 %}{{ s.short_name|default:s.title }}</a>{% endfor %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        <p class="conditions__empty" data-conditions-empty hidden>We didn't find that one, but we may still be able to help. Call or text <a href="tel:{{ settings.core.ClinicSettings.phone_digits }}">{{ settings.core.ClinicSettings.phone }}</a> and we'll point you in the right direction.</p>
+        <p class="conditions__note" aria-live="polite" data-conditions-count></p>
+    </div>
+</section>

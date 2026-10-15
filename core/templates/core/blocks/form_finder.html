@@ -1,0 +1,52 @@
+{% load wagtailcore_tags site_tags %}
+<section class="section block" id="forms">
+    <div class="container">
+        {% if value.heading.heading %}{% include "core/blocks/heading.html" with value=value.heading align="center" %}{% endif %}
+        <div class="finder" data-finder>
+            <fieldset class="finder__step">
+                <legend class="finder__question"><span class="finder__num" aria-hidden="true">1</span> {{ value.question }}</legend>
+                <div class="finder__choices finder__choices--paths">
+                    {% for path in value.paths %}
+                    <button type="button" class="finder__choice" aria-pressed="false" data-finder-path="{{ forloop.counter }}">
+                        <span class="finder__icon">{% icon path.icon 28 %}</span>
+                        <span><strong>{{ path.label }}</strong>{% if path.description %}<small>{{ path.description }}</small>{% endif %}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            {% for path in value.paths %}{% with p=forloop.counter %}
+            <div class="finder__panel" data-finder-panel="{{ p }}">
+                <h3 class="finder__nojs-title">{{ path.label }}</h3>
+                {% if path.options %}
+                <fieldset class="finder__step">
+                    <legend class="finder__question"><span class="finder__num" aria-hidden="true">2</span> {{ path.follow_up_question|default:"Which one fits best?" }}</legend>
+                    <div class="finder__choices">
+                        {% for opt in path.options %}
+                        <button type="button" class="finder__choice finder__choice--small" aria-pressed="false" data-finder-option="{{ p }}-{{ forloop.counter }}">{{ opt.label }}</button>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                {% for opt in path.options %}
+                <div class="finder__result" data-finder-result="{{ p }}-{{ forloop.counter }}" tabindex="-1">
+                    <h4 class="finder__result-title">{% icon "clipboard" 24 %} Your forms: {{ opt.label }}</h4>
+                    {% include "core/blocks/form_finder_list.html" with forms=opt.forms extra=path.forms %}
+                    {% if opt.note %}<div class="finder__note prose">{{ opt.note|richtext }}</div>{% endif %}
+                    {% if path.note %}<div class="finder__note prose">{{ path.note|richtext }}</div>{% endif %}
+                    {% if value.return_note and opt.forms or value.return_note and path.forms %}<div class="finder__return prose">{% icon "mail" 20 %}<div>{{ value.return_note|richtext }}</div></div>{% endif %}
+                    {% if path.button.url %}<a class="btn btn--indigo" href="{{ path.button.url }}">{{ path.button.label|default:"Learn more" }}</a>{% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="finder__result" data-finder-result="{{ p }}" tabindex="-1">
+                    {% if path.forms %}<h4 class="finder__result-title">{% icon "clipboard" 24 %} Your forms</h4>{% include "core/blocks/form_finder_list.html" with forms=path.forms %}{% endif %}
+                    {% if path.note %}<div class="finder__note prose">{{ path.note|richtext }}</div>{% endif %}
+                    {% if value.return_note and path.forms %}<div class="finder__return prose">{% icon "mail" 20 %}<div>{{ value.return_note|richtext }}</div></div>{% endif %}
+                    {% if path.button.url %}<a class="btn btn--indigo" href="{{ path.button.url }}">{{ path.button.label|default:"Learn more" }}</a>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endwith %}{% endfor %}
+        </div>
+    </div>
+</section>
