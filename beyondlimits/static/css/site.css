@@ -665,9 +665,7 @@ main:focus { outline: none; }
 .finder__note--first { background: var(--sun-soft); border-radius: 14px; padding: 14px 16px; }
 /* The forms are steps in order, so number them in place of the document icon. */
 .finder__forms { counter-reset: form; }
-.finder__forms > .doc-list__item { counter-increment: form; }
-.finder__stage { font-family: var(--font-display); font-weight: 700; color: var(--indigo); margin-top: 10px; }
-.finder__stage:first-child { margin-top: 0; }
+.finder__forms > li { counter-increment: form; }
 .finder__forms .doc-list__icon { background: var(--indigo); color: #fff; font-weight: 800; font-size: 1.15rem; }
 .finder__forms .doc-list__icon .icon { display: none; }
 .finder__forms .doc-list__icon::before { content: counter(form); }

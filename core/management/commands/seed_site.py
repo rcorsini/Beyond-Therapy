@@ -189,7 +189,7 @@ SERVICES = [
 
 # ---------------- Get started ----------------
 # Which form goes with which situation comes from the clinic's answers in October 2026
-# (see docs/client-questions.md). Data migrations pages/0011, 0012 and 0015 reuse this (0013 only adds the records form link) to update
+# (see docs/client-questions.md). Data migrations pages/0011, 0012, 0015 and 0017 reuse this (0013 only adds the records form link) to update
 # an existing site, so keep it free of anything that only exists while seeding.
 GET_STARTED_INTRO = "Find the forms your child needs in a question or two, then see what happens next."
 
@@ -199,25 +199,20 @@ def get_started_blocks(insurance, contact, veterans):
     lux = "https://secureform.luxsci.com/forms/18016/"
     new = "https://beyond-limits.secure-form.com/"  # the clinic's newer forms (added October 2026)
 
-    def form(title, url="", note="", stage=""):
-        return {"title": title, "online_url": url, "document": None, "note": note, "stage": stage}
+    def form(title, url="", note=""):
+        return {"title": title, "online_url": url, "document": None, "note": note}
 
-    general = form("General Admissions Form", lux + "12134/J1HD/form.html", "Every new patient, whatever the therapy. Send it with your pediatrician's referral.", "Now")
+    # Every new patient starts with General Admissions (plus the Feeding Intake for feeding
+    # concerns). The therapies, and their Brief Admissions forms, are added after the first
+    # visit, or any time later; the clinic used to hand those out on a clipboard.
+    general = form("General Admissions Form", lux + "12134/J1HD/form.html", "Every new patient, whatever the therapy. Send it with your pediatrician's referral.")
+    feeding = form("Feeding Intake Form", new + "feeding-n/", "About 12 minutes. Needed before we can schedule a feeding evaluation.")
     feeding_note = "<p>Please bring 2 or 3 foods your child likes, 2 or 3 foods they find hard to manage, and a drink to the feeding evaluation.</p>"
-
-    def feeding(stage=""):
-        return form("Feeding Intake Form", new + "feeding-n/", "About 12 minutes. Needed before we can schedule a feeding evaluation.", stage)
-
-    def therapies(stage=""):
-        """The Brief Admissions forms, one per therapy. The clinic used to hand these out on a
-        clipboard at the first appointment (phone call, October 2026); online they come first."""
-        return [
-            ("Speech therapy", form("Speech Therapy Brief Admissions Form", new + "st-patient/", "About 6 minutes. Tells your child's evaluating therapist what to look at.", stage)),
-            ("Occupational therapy", form("Occupational Therapy Brief Admissions Form", new + "ot-patient/", "About 9 minutes. Tells your child's evaluating therapist what to look at.", stage)),
-            ("Physical therapy", form("Physical Therapy Brief Admissions Form", new + "pt-patient/", "About 9 minutes. Tells your child's evaluating therapist what to look at.", stage)),
-        ]
-
-    before_visit = "Before your first appointment"
+    therapies = [
+        ("Speech therapy", form("Speech Therapy Brief Admissions Form", new + "st-patient/", "About 6 minutes. Tells your child's evaluating therapist what to look at.")),
+        ("Occupational therapy", form("Occupational Therapy Brief Admissions Form", new + "ot-patient/", "About 9 minutes. Tells your child's evaluating therapist what to look at.")),
+        ("Physical therapy", form("Physical Therapy Brief Admissions Form", new + "pt-patient/", "About 9 minutes. Tells your child's evaluating therapist what to look at.")),
+    ]
 
     return [
         block("form_finder", {
@@ -228,16 +223,17 @@ def get_started_blocks(insurance, contact, veterans):
             "paths": [
                 {
                     "label": "My child is new to Beyond Limits", "description": "Starting speech, occupational, physical or feeding therapy", "icon": "family",
-                    "follow_up_question": "Which therapies is your child starting?", "pick_several": True,
+                    "follow_up_question": "Does your child have feeding or eating concerns you'd like us to help with?",
                     "note": "<p><b>You'll also need a referral</b> from your child's pediatrician before we can add your child to our waitlist. "
                             "Give us the doctor's name and we can request it for you.</p>"
-                            "<p>Fill out the General Admissions Form now. The short form for each therapy can wait until just before your first appointment. "
-                            "Doing it online means there's nothing to fill out on a clipboard in our waiting room.</p>",
+                            "<p>This is all you need for now. After your child's first visit we'll agree together which therapies to start, "
+                            "and you'll fill out a short form for each one, on your phone at the front desk or at home.</p>",
                     "forms": [general],
-                    "options": [{"label": label, "forms": [f], "note": ""} for label, f in therapies(before_visit)] + [
-                        {"label": "Feeding therapy", "forms": [feeding("Now")], "note": feeding_note},
-                        {"label": "Not sure yet", "forms": [], "note": "<p>Start with the General Admissions Form, then call or text 770-917-5737. "
-                                                                       "Our new patient advocate can talk it through with you.</p>"},
+                    "options": [
+                        {"label": "No", "forms": []},
+                        {"label": "Yes", "forms": [feeding], "note": feeding_note},
+                        {"label": "Not sure", "forms": [], "note": "<p>Start with the General Admissions Form, then call or text 770-917-5737. "
+                                                                   "Our new patient advocate can talk it through with you.</p>"},
                     ],
                 },
                 {
@@ -252,13 +248,13 @@ def get_started_blocks(insurance, contact, veterans):
                     ],
                 },
                 {
-                    "label": "My child already comes here and is adding a therapy", "description": "Starting another service with us", "icon": "heart",
-                    "follow_up_question": "Which therapy is your child adding?", "pick_several": True,
-                    "note": "<p>You don't need to fill out General Admissions again. Let your child's therapist or our front desk know too, "
-                            "so we can check whether a new referral is needed.</p>",
+                    "label": "We've had our first visit and are adding therapies", "description": "Right after the first visit, or any time later", "icon": "heart",
+                    "follow_up_question": "Which therapies is your child adding?", "pick_several": True, "link_name": "adding",
+                    "note": "<p>These are the forms we used to hand out on a clipboard. Fill them out here on your phone, or at home. "
+                            "You don't need General Admissions again.</p>",
                     "forms": [],
-                    "options": [{"label": label, "forms": [f], "note": ""} for label, f in therapies()]
-                               + [{"label": "Feeding therapy", "forms": [feeding()], "note": feeding_note}],
+                    "options": [{"label": label, "forms": [f], "note": ""} for label, f in therapies]
+                               + [{"label": "Feeding therapy", "forms": [feeding], "note": feeding_note}],
                 },
                 {
                     "label": "Our office asked me to fill out a form", "description": "Yearly update, telehealth, card on file or records", "icon": "clipboard",
@@ -293,8 +289,7 @@ def get_started_blocks(insurance, contact, veterans):
         block("steps", {"heading": heading("What happens next", "From forms to first session"), "steps": [
             {"title": "General Admissions and referral", "text": "Fill out the General Admissions Form online (plus the Feeding Intake for feeding concerns), and send your pediatrician's referral or give us the doctor's name."},
             {"title": "Join our waitlist", "text": "With both in hand, your child joins our waitlist and we check your insurance benefits."},
-            {"title": "A short form for each therapy", "text": "Before your first appointment, fill out the short form for each therapy your child is starting. It replaces the clipboard at the front desk."},
-            {"title": "Evaluation", "text": "Your child's therapist meets you both and writes a plan of care."},
+            {"title": "First visit and evaluation", "text": "Your child's therapist meets you both, and together we agree which therapies to start. Then you fill out a short form for each one, on your phone at the front desk or at home."},
             {"title": "Therapy begins", "text": "Once your doctor signs the plan and insurance approves (usually about 2 weeks), we call to schedule."},
         ]}),
         block("callout", {"color": "sky", "icon": "shield", "title": "Insurance and what to bring",
@@ -302,7 +297,7 @@ def get_started_blocks(insurance, contact, veterans):
                           "button": link("Insurance and your first visit", insurance)}),
         block("faq", {"heading": "Common questions", "items": [
             {"question": "Do I need a referral?", "answer": "<p>Yes. We need a referral from your child's pediatrician before we can add your child to our waitlist or schedule a hearing test. Give us the doctor's name and we'll request it for you, or send us a copy if you already have one.</p>"},
-            {"question": "Why is there a second form for each therapy?", "answer": "<p>The General Admissions Form covers insurance, consents and your child's history for the whole clinic. The short form for speech, occupational, physical or feeding therapy tells that therapist what to look at in the evaluation. Families used to fill it out on a clipboard at the first visit; online, you can do it at home ahead of time.</p>"},
+            {"question": "Why is there a second form for each therapy?", "answer": "<p>The General Admissions Form covers insurance, consents and your child's history for the whole clinic. The short form for speech, occupational, physical or feeding therapy tells that therapist what to look at. You fill it out once we've agreed which therapies your child will start, whether that's right after the first visit or years later. Scan the code at our front desk, or choose \"adding therapies\" above.</p>"},
             {"question": "We already come here. Is there yearly paperwork?", "answer": "<p>Yes, one form: the Patient Update. Near the end of each year we send every current family the link, so your insurance, contact details and consents are up to date for January.</p>"},
             {"question": "How long until my child's first appointment?", "answer": "<p>After the evaluation, it usually takes about two weeks to get the doctor's signature on the plan of care and any prior authorization from insurance. We'll call you as soon as it's approved.</p>"},
             {"question": "My child has an IEP. Do you need it?", "answer": "<p>Yes, please. We share it with your child's therapist and some insurers need it for authorization. Send us the updated IEP whenever the school renews it.</p>"},

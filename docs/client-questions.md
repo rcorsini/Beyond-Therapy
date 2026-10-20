@@ -15,7 +15,7 @@ The clinic answered these in October 2026 (Website-Forms-Word-Doc.docx), and Get
 
 Still to confirm (our assumptions on the site today):
 
-1. **Brief Admissions forms** (speech, OT, PT; on LuxSci account 18249). By phone (October 20, 2026) the clinic said these are the forms it hands new families on a clipboard at the first appointment, and that therapies can also be added later. The site now shows them to new families as "Before your first appointment", after General Admissions, and to current families adding a therapy. Please confirm that reading, and whether a current patient adding a therapy skips General Admissions.
+1. **Brief Admissions forms** (speech, OT, PT; on LuxSci account 18249). By phone (October 20, 2026) the clinic said every new patient starts with General Admissions (and the Feeding Intake if needed); the therapies are chosen after the first visit, or any time later, and their forms were handed out on a clipboard. The site now has an "adding therapies" choice for those forms, opened directly by a QR code at the front desk (`/get-started/#adding`) or from home. Please confirm, and say whether a patient adding a therapy later ever needs General Admissions again.
 2. **Feeding Intake.** The new Pediatric Case History form (`feeding-n`) is linked in place of the older ST/OT Feeding Intake. Can the older one be retired?
 3. **Audiology, school age to 21.** What does an older child or teen coming for a hearing test fill out?
 4. **Veterans (VES).** Do VES patients need any of your forms, or does VES send everything?
