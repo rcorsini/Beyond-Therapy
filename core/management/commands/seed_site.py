@@ -189,7 +189,7 @@ SERVICES = [
 
 # ---------------- Get started ----------------
 # Which form goes with which situation comes from the clinic's answers in October 2026
-# (see docs/client-questions.md). The data migration pages/0011 reuses this to update
+# (see docs/client-questions.md). Data migrations pages/0011 and 0012 reuse this to update
 # an existing site, so keep it free of anything that only exists while seeding.
 GET_STARTED_INTRO = "Find the forms your child needs in a question or two, then see what happens next."
 
@@ -202,18 +202,15 @@ def get_started_blocks(insurance, contact, veterans):
     def form(title, url="", note=""):
         return {"title": title, "online_url": url, "document": None, "note": note}
 
-    general = form("General Admissions Form", lux + "12134/J1HD/form.html", "Everyone starting therapy fills this out first")
-    therapies = [
-        ("Speech therapy", form("Speech Therapy Patient Form", new + "st-patient/")),
-        ("Occupational therapy", form("Occupational Therapy Patient Form", new + "ot-patient/")),
-        ("Physical therapy", form("Physical Therapy Patient Form", new + "pt-patient/")),
-        ("Feeding or eating concerns", form("Feeding Intake Form", new + "feeding-n/", "Needed before we can schedule a feeding evaluation")),
+    general = form("General Admissions Form", lux + "12134/J1HD/form.html", "Every new therapy patient, whatever the therapy")
+    feeding = form("Feeding Intake Form", new + "feeding-n/", "About 12 minutes. Needed before we can schedule a feeding evaluation.")
+    feeding_note = "<p>Please bring 2 or 3 foods your child likes, 2 or 3 foods they find hard to manage, and a drink to the feeding evaluation.</p>"
+    # The Brief Admissions forms are for children who already come here (the speech form says so).
+    adding = [
+        ("Speech therapy", form("Speech Therapy Brief Admissions Form", new + "st-patient/", "About 6 minutes")),
+        ("Occupational therapy", form("Occupational Therapy Brief Admissions Form", new + "ot-patient/", "About 9 minutes")),
+        ("Physical therapy", form("Physical Therapy Brief Admissions Form", new + "pt-patient/", "About 9 minutes")),
     ]
-    feeding_note = ("<p>Feeding concerns like texture or food aversions are usually seen by occupational therapy, and chewing or "
-                    "swallowing by speech therapy. If you're not sure which, we'll help you decide.</p>")
-
-    def therapy_options():
-        return [{"label": label, "forms": [f], "note": feeding_note if label.startswith("Feeding") else ""} for label, f in therapies]
 
     return [
         block("form_finder", {
@@ -224,12 +221,16 @@ def get_started_blocks(insurance, contact, veterans):
             "paths": [
                 {
                     "label": "My child is new to therapy here", "description": "Speech, occupational, physical or feeding therapy", "icon": "family",
-                    "follow_up_question": "Which therapy is your child starting?", "pick_several": True,
+                    "follow_up_question": "Does your child have feeding or eating concerns you'd like us to help with?",
                     "note": "<p><b>You'll also need a referral</b> from your child's pediatrician before we can add your child to our waitlist. "
                             "Give us the doctor's name and we can request it for you.</p>",
                     "forms": [general],
-                    "options": therapy_options() + [{"label": "Not sure yet", "forms": [], "note":
-                        "<p>Start with the General Admissions Form, then call or text 770-917-5737. Our new patient advocate will help you choose.</p>"}],
+                    "options": [
+                        {"label": "No", "forms": []},
+                        {"label": "Yes", "forms": [feeding], "note": feeding_note},
+                        {"label": "Not sure", "forms": [], "note": "<p>Start with the General Admissions Form, then call or text 770-917-5737. "
+                                                                   "Our new patient advocate can talk it through with you.</p>"},
+                    ],
                 },
                 {
                     "label": "My child needs a hearing test", "description": "Audiology, newborn to school age", "icon": "ear",
@@ -247,7 +248,9 @@ def get_started_blocks(insurance, contact, veterans):
                     "follow_up_question": "Which therapy is your child adding?", "pick_several": True,
                     "note": "<p>You don't need to fill out General Admissions again. Let your child's therapist or our front desk know too, "
                             "so we can check whether a new referral is needed.</p>",
-                    "forms": [], "options": therapy_options(),
+                    "forms": [],
+                    "options": [{"label": label, "forms": [f], "note": ""} for label, f in adding]
+                               + [{"label": "Feeding therapy", "forms": [feeding], "note": feeding_note}],
                 },
                 {
                     "label": "Our office asked me to fill out a form", "description": "Yearly update, telehealth, card on file or records", "icon": "clipboard",
