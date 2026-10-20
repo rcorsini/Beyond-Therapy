@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags wagtailimages_tags wagtailroutablepage_tags site_tags %}
+{% load wagtailcore_tags wagtailimages_tags site_tags %}
 {% block title %}{{ member.name }}{% if member.credentials %}, {{ member.credentials }}{% endif %}{% endblock %}
 {% block body_class %}template-profile{% endblock %}
 {% block content %}
@@ -31,14 +31,7 @@
     <div class="container">
         <div class="section-heading section-heading--center"><h2>More from {{ member.get_discipline_display }}</h2><div class="divider" aria-hidden="true"><span></span><span></span><span></span></div></div>
         <ul class="team-grid">
-            {% for m in teammates %}
-            <li class="team-card team-card--{{ m.color }}">
-                <div class="team-card__photo">{% if m.photo %}{% image m.photo fill-320x320 format-webp alt="" %}{% else %}<span class="team-card__initials" aria-hidden="true">{{ m.initials }}</span>{% endif %}</div>
-                <h3 class="team-card__name">{{ m.name }}</h3>
-                {% if m.credentials %}<p class="team-card__creds">{{ m.credentials }}</p>{% endif %}
-                <a class="btn btn--indigo btn--small team-card__btn" href="{% routablepageurl page "profile" m.slug %}">View profile<span class="visually-hidden"> for {{ m.name }}</span></a>
-            </li>
-            {% endfor %}
+            {% for m in teammates %}{% include "includes/team_card.html" with brief=True %}{% endfor %}
         </ul>
     </div>
 </section>
