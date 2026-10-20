@@ -189,7 +189,7 @@ SERVICES = [
 
 # ---------------- Get started ----------------
 # Which form goes with which situation comes from the clinic's answers in October 2026
-# (see docs/client-questions.md). Data migrations pages/0011 and 0012 reuse this to update
+# (see docs/client-questions.md). Data migrations pages/0011 and 0012 reuse this (0013 only adds the records form link) to update
 # an existing site, so keep it free of anything that only exists while seeding.
 GET_STARTED_INTRO = "Find the forms your child needs in a question or two, then see what happens next."
 
@@ -264,7 +264,7 @@ def get_started_blocks(insurance, contact, veterans):
                             "When your child's therapist offers telehealth and your insurance requires this form")]},
                         {"label": "Keeping a card on file", "forms": [form("Payment Consent Form", lux + "18866/Q5Lr/form.html",
                             "Lets us charge your share of each session to a saved card")]},
-                        {"label": "Sharing records with a school or another provider", "forms": [form("Medical Records Request and Disclosure", "",
+                        {"label": "Sharing records with a school or another provider", "forms": [form("Medical Records Request and Disclosure", new + "medical-records/",
                             "Needed before we can discuss your child's care with, or send records to, anyone other than your child's doctor")]},
                     ],
                 },

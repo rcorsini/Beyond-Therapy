@@ -11,7 +11,7 @@ The clinic answered these in October 2026 (Website-Forms-Word-Doc.docx), and Get
 - **ST/OT Feeding Intake**: in addition to General Admissions, for any feeding concern, before a feeding evaluation.
 - **Audiology Admission** (newborn to 12 months, 13 months to school age): plus a pediatrician's referral before a hearing test. Separate from the therapy forms.
 - **Patient Update**: every current patient once a year; the clinic sends the link near year end.
-- **Telehealth Consent**, **Payment Consent** (card on file) and **Medical Records Request**: only when the clinic asks.
+- **Telehealth Consent**, **Payment Consent** (card on file) and **Medical Records Request** (a secure web form since October 2026, replacing the PDF): only when the clinic asks.
 
 Still to confirm (our assumptions on the site today):
 
