@@ -153,7 +153,7 @@
         el.hidden = !el.getAttribute("data-finder-for").split(" ").some(function (n) { return picked.indexOf(n) > -1; });
       });
       var list = result.querySelector("[data-finder-list]");
-      var count = list ? list.querySelectorAll("li:not([hidden])").length : 0;
+      var count = list ? list.querySelectorAll(".doc-list__item:not([hidden])").length : 0;
       if (list) list.hidden = !count;
       var ret = result.querySelector("[data-finder-return]");
       if (ret) ret.hidden = !count;

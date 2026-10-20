@@ -11,11 +11,11 @@ The clinic answered these in October 2026 (Website-Forms-Word-Doc.docx), and Get
 - **ST/OT Feeding Intake**: in addition to General Admissions, for any feeding concern, before a feeding evaluation.
 - **Audiology Admission** (newborn to 12 months, 13 months to school age): plus a pediatrician's referral before a hearing test. Separate from the therapy forms.
 - **Patient Update**: every current patient once a year; the clinic sends the link near year end.
-- **Telehealth Consent**, **Payment Consent** (card on file) and **Medical Records Request**: only when the clinic asks.
+- **Telehealth Consent**, **Payment Consent** (card on file) and **Medical Records Request** (a secure web form since October 2026, replacing the PDF): only when the clinic asks.
 
 Still to confirm (our assumptions on the site today):
 
-1. **Brief Admissions forms** (speech, OT, PT; on LuxSci account 18249). The speech form says it's for patients already receiving other services, so the site offers all three only to a current patient adding that therapy, without General Admissions again. Is that right for OT and PT too?
+1. **Brief Admissions forms** (speech, OT, PT; on LuxSci account 18249). By phone (October 20, 2026) the clinic said these are the forms it hands new families on a clipboard at the first appointment, and that therapies can also be added later. The site now shows them to new families as "Before your first appointment", after General Admissions, and to current families adding a therapy. Please confirm that reading, and whether a current patient adding a therapy skips General Admissions.
 2. **Feeding Intake.** The new Pediatric Case History form (`feeding-n`) is linked in place of the older ST/OT Feeding Intake. Can the older one be retired?
 3. **Audiology, school age to 21.** What does an older child or teen coming for a hearing test fill out?
 4. **Veterans (VES).** Do VES patients need any of your forms, or does VES send everything?
