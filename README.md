@@ -143,6 +143,7 @@ Waiting on the clinic:
 - [ ] **High-resolution logo** (SVG, AI, EPS, or PNG 1000px+). The current file is 175px wide.
 - [ ] **Provider profiles** reviewed by each provider.
 - [ ] **New forms**: confirm with the clinic how Get Started uses the four new forms (speech, OT and PT Brief Admissions, Feeding Intake), listed in `docs/client-questions.md`.
+- [ ] **Front-desk QR code**: print a sign with a QR code for `/get-started/#adding` on the live domain, where the clipboard used to be, so families fill out the therapy forms on their phone.
 - [ ] **LuxSci**: confirm form account 18249 (contact) belongs to the clinic under its HIPAA agreement (the admission forms use 18016), and set its after-send page to `/contact/?sent=1`.
 - [ ] **Slide wording** confirmed by the clinic.
 

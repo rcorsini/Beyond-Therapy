@@ -7,7 +7,7 @@
                 <legend class="finder__question"><span class="finder__num" aria-hidden="true">1</span> {{ value.question }}</legend>
                 <div class="finder__choices finder__choices--paths">
                     {% for item in paths %}{% with path=item.value %}
-                    <button type="button" class="finder__choice" aria-pressed="false" data-finder-path="{{ forloop.counter }}">
+                    <button type="button" class="finder__choice" aria-pressed="false" data-finder-path="{{ forloop.counter }}"{% if path.link_name %} data-finder-link="{{ path.link_name }}"{% endif %}>
                         <span class="finder__icon">{% icon path.icon 28 %}</span>
                         <span><strong>{{ path.label }}</strong>{% if path.description %}<small>{{ path.description }}</small>{% endif %}</span>
                     </button>
@@ -17,7 +17,7 @@
 
             {% with s=settings.core.ClinicSettings %}
             {% for item in paths %}{% with path=item.value %}
-            <div class="finder__panel" data-finder-panel="{{ forloop.counter }}"{% if path.pick_several %} data-finder-multi{% endif %}>
+            <div class="finder__panel" data-finder-panel="{{ forloop.counter }}"{% if path.pick_several %} data-finder-multi{% endif %}{% if path.link_name %} id="{{ path.link_name }}"{% endif %}>
                 <h3 class="finder__nojs">{{ path.label }}</h3>
                 {% if path.options %}
                 <fieldset class="finder__step">
@@ -31,18 +31,15 @@
                 </fieldset>
                 {% endif %}
                 <div class="finder__result" data-finder-result tabindex="-1">
-                    <h3 class="finder__result-title">{% icon "clipboard" 24 %} {% if item.groups %}Your forms{% else %}What to do{% endif %}</h3>
+                    <h3 class="finder__result-title">{% icon "clipboard" 24 %} {% if item.items %}Your forms{% else %}What to do{% endif %}</h3>
                     {% if path.note %}<div class="finder__note finder__note--first prose">{{ path.note|richtext }}</div>{% endif %}
-                    {% if item.groups %}
+                    {% if item.items %}
                     <ol class="doc-list finder__forms" data-finder-list>
-                        {% for g in item.groups %}
-                        {% if g.stage %}<li class="finder__stage"{% if g.options %} data-finder-for="{{ g.options }}"{% endif %}>{{ g.stage }}</li>{% endif %}
-                        {% for i in g.items %}{% include "core/blocks/form_finder_item.html" with f=i.form only_for=i.options labels=i.labels %}{% endfor %}
-                        {% endfor %}
+                        {% for i in item.items %}{% include "core/blocks/form_finder_item.html" with f=i.form only_for=i.options labels=i.labels %}{% endfor %}
                     </ol>
                     {% endif %}
                     {% for opt in path.options %}{% if opt.note %}<div class="finder__note prose" data-finder-for="{{ forloop.counter }}">{% if path.options|length > 1 %}<p class="finder__nojs"><b>{{ opt.label }}:</b></p>{% endif %}{{ opt.note|richtext }}</div>{% endif %}{% endfor %}
-                    {% if value.return_note and item.groups %}<div class="finder__return prose" data-finder-return>{% icon "mail" 20 %}<div>{{ value.return_note|richtext }}</div></div>{% endif %}
+                    {% if value.return_note and item.items %}<div class="finder__return prose" data-finder-return>{% icon "mail" 20 %}<div>{{ value.return_note|richtext }}</div></div>{% endif %}
                     {% if path.button.url %}<a class="btn btn--indigo" href="{{ path.button.url }}">{{ path.button.label|default:"Learn more" }}</a>{% endif %}
                     <p class="visually-hidden" aria-live="polite" data-finder-status></p>
                 </div>

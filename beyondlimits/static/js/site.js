@@ -142,6 +142,7 @@
 
   // Form finder: step 1 picks a path, step 2 (if any) picks one option, or several on
   // a "pick several" path, and the path's list shows only the forms for those answers.
+  // A link such as /get-started/#adding (the front-desk QR code) opens that path at once.
   document.querySelectorAll("[data-finder]").forEach(function (finder) {
     var update = function (panel, moveFocus) {
       var picked = Array.prototype.filter.call(panel.querySelectorAll("[data-finder-option]"), function (b) {
@@ -153,7 +154,7 @@
         el.hidden = !el.getAttribute("data-finder-for").split(" ").some(function (n) { return picked.indexOf(n) > -1; });
       });
       var list = result.querySelector("[data-finder-list]");
-      var count = list ? list.querySelectorAll(".doc-list__item:not([hidden])").length : 0;
+      var count = list ? list.querySelectorAll("li:not([hidden])").length : 0;
       if (list) list.hidden = !count;
       var ret = result.querySelector("[data-finder-return]");
       if (ret) ret.hidden = !count;
@@ -185,6 +186,13 @@
         update(panel, !multi);
       });
     });
+    var linked = location.hash && Array.prototype.find.call(pathButtons, function (b) {
+      return b.getAttribute("data-finder-link") === location.hash.slice(1);
+    });
+    if (linked) {
+      // After the page's own jump to #adding (which clears focus), open the path and focus its first answer.
+      window.addEventListener("load", function () { setTimeout(function () { linked.click(); linked.scrollIntoView(); }, 0); });
+    }
   });
 
   // "Who we help": filter the list of conditions as the visitor types
