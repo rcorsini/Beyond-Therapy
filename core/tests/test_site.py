@@ -39,6 +39,7 @@ class SeededSiteTests(TestCase):
         self.assertContains(response, "<strong>General Admissions Form</strong>", count=1)
         self.assertContains(response, '<li class="doc-list__item" data-finder-for="1">')
         self.assertContains(response, "https://beyond-limits.secure-form.com/feeding-n/", count=2)  # new, and adding a therapy
+        self.assertContains(response, "https://beyond-limits.secure-form.com/st-patient/", count=1)  # adding a therapy only
         self.assertNotContains(response, "Upper Extremity")
 
     def test_seeded_headshots_replace_initials(self):
