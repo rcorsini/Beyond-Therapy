@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% block content %}
+{% include "includes/page_hero.html" %}
+<div class="container container--narrow prose block center">
+    {% if page.thank_you_text %}{{ page.thank_you_text|richtext }}{% else %}<p>Thanks! We'll be in touch soon.</p>{% endif %}
+    <p><a class="btn btn--teal" href="/">Back to home</a></p>
+</div>
+{% endblock %}

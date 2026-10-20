@@ -1,0 +1,15 @@
+<section class="section block">
+    <div class="container">
+        {% if value.heading.heading %}{% include "core/blocks/heading.html" with value=value.heading align="center" %}{% endif %}
+        <ol class="steps">
+            {% for step in value.steps %}
+            <li class="steps__item">
+                <span class="steps__num">{{ forloop.counter|stringformat:"02d" }}</span>
+                <h3>{{ step.title }}</h3>
+                {% if step.text %}<p>{{ step.text }}</p>{% endif %}
+                {% if step.link.url %}<a class="btn btn--lime btn--small" href="{{ step.link.url }}">{{ step.link.label|default:"Learn more" }}</a>{% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>

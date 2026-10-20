@@ -1,0 +1,55 @@
+# Render Blueprint for the preview copy of the site, on paid plans
+# (about $13.25 a month: $7 web service, $6 database, $0.25 disk).
+# Every push to the branch redeploys it. Pages live in the Postgres database
+# and uploaded images on the persistent disk, so edits made in the Wagtail
+# admin survive deploys and restarts. seed_site only fills an empty database.
+services:
+  - type: web
+    name: beyond-limits-preview
+    runtime: python
+    plan: 0.5c-512mb  # $7/month
+    branch: feature/wagtail-site
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: >-
+      python manage.py migrate --noinput &&
+      python manage.py seed_site &&
+      (python manage.py createsuperuser --noinput || true) &&
+      gunicorn beyondlimits.wsgi --bind 0.0.0.0:$PORT
+    healthCheckPath: /
+    # Uploaded images and documents. Only this folder survives a deploy.
+    # A disk means each deploy has a short gap (no zero-downtime deploys).
+    disk:
+      name: media
+      mountPath: /var/data
+      sizeGB: 1  # $0.25/month; can grow later but never shrink
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DJANGO_SETTINGS_MODULE
+        value: beyondlimits.settings.production
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: SITE_NOINDEX
+        value: "1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: beyond-limits-db
+          property: connectionString
+      - key: MEDIA_ROOT
+        value: /var/data/media
+      # First admin login, created once when the database is new. After that,
+      # change the password in the Wagtail admin (Account), not here.
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+
+databases:
+  - name: beyond-limits-db
+    plan: 0.1c-256mb  # $6/month, 1 GB storage included
+    diskSizeGB: 1
+    postgresMajorVersion: "17"
+    ipAllowList: []  # reachable only from Render's private network, not the internet

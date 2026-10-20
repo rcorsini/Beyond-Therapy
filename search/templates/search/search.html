@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% block body_class %}template-searchresults{% endblock %}
+{% block title %}Search{% endblock %}
+{% block content %}
+<section class="page-hero page-hero--sky"><div class="container page-hero__inner"><h1 class="page-hero__title">Search</h1>
+<form class="search-form" action="{% url 'search' %}" method="get" role="search">
+    <label class="visually-hidden" for="q">Search the site</label>
+    <input id="q" type="search" name="query"{% if search_query %} value="{{ search_query }}"{% endif %} placeholder="Try 'feeding' or 'insurance'">
+    <button class="btn btn--coral" type="submit">Search</button>
+</form></div>{% include "includes/wave.html" %}</section>
+<div class="container container--narrow block">
+{% if search_results %}
+<ul class="link-list">
+    {% for result in search_results %}
+    <li><a href="{% pageurl result %}">{{ result }}</a>{% if result.search_description %}<span>{{ result.search_description }}</span>{% endif %}</li>
+    {% endfor %}
+</ul>
+{% if search_results.has_previous %}<a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}">Previous</a>{% endif %}
+{% if search_results.has_next %}<a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.next_page_number }}">Next</a>{% endif %}
+{% elif search_query %}
+<p>No results found for "{{ search_query }}".</p>
+{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% block body_class %}template-standard theme-{{ page.hero_color }}{% endblock %}
+{% block content %}
+{% include "includes/page_hero.html" %}
+<div class="page-body">{% for block in page.body %}{% include_block block %}{% endfor %}</div>
+{% endblock %}

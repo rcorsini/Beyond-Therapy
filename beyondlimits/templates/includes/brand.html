@@ -1,0 +1,5 @@
+{% load static wagtailimages_tags %}
+<a class="brand" href="/">
+    {% if s.logo %}{% image s.logo height-140 as logo_img %}<img class="brand__logo" src="{{ logo_img.url }}" width="{{ logo_img.width }}" height="{{ logo_img.height }}" alt="{{ s.clinic_name }}, home">
+    {% else %}<img class="brand__logo" src="{% static 'img/beyond-limits-logo.png' %}" width="175" height="70" alt="{{ s.clinic_name }}, home">{% endif %}
+</a>

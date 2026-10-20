@@ -1,0 +1,16 @@
+{% load site_tags %}
+<section class="section block">
+    <div class="container">
+        {% if value.heading.heading %}{% include "core/blocks/heading.html" with value=value.heading align="center" %}{% endif %}
+        <div class="card-grid card-grid--{{ value.cards|length }}">
+            {% for card in value.cards %}
+            <article class="card card--{{ card.color }}">
+                <span class="card__icon">{% icon card.icon 30 %}</span>
+                <h3 class="card__title">{% if card.link.url %}<a href="{{ card.link.url }}">{{ card.title }}</a>{% else %}{{ card.title }}{% endif %}</h3>
+                {% if card.text %}<p>{{ card.text }}</p>{% endif %}
+                {% if card.link.url %}<span class="card__more" aria-hidden="true">{{ card.link.label|default:"Learn more" }} {% icon "arrow" 18 %}</span>{% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>

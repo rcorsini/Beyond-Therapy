@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags site_tags %}
+{% block body_class %}template-team{% endblock %}
+{% block content %}
+{% include "includes/page_hero.html" %}
+<section class="section">
+    <div class="container">
+        <figure class="team-photo{% if not page.group_photo %} team-photo--illo{% endif %}">
+            {% if page.group_photo %}{% image page.group_photo max-1600x1200 format-webp alt=page.group_photo.description|default:"Our team together" %}{% else %}{% include "includes/illustration.html" with name="team" %}{% endif %}
+        </figure>
+        <div class="filter" id="providers" role="group" aria-label="Filter the team by discipline" data-filter>
+            <button type="button" class="filter__btn is-active" aria-pressed="true" data-filter-value="all">Everyone</button>
+            {% for g in groups %}<button type="button" class="filter__btn filter__btn--{{ g.color }}" aria-pressed="false" data-filter-value="{{ g.key }}">{{ g.label }}</button>{% endfor %}
+        </div>
+        {% for g in groups %}
+        <section class="team-group" data-filter-group="{{ g.key }}">
+            <h2 class="team-group__title team-group__title--{{ g.color }}">{{ g.label }}</h2>
+            <ul class="team-grid">
+                {% for m in g.members %}{% include "includes/team_card.html" %}{% endfor %}
+            </ul>
+        </section>
+        {% endfor %}
+    </div>
+</section>
+<div class="page-body">{% for block in page.body %}{% include_block block %}{% endfor %}</div>
+{% endblock %}

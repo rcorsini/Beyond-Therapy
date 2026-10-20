@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags site_tags %}
+{% block body_class %}template-job{% endblock %}
+{% block content %}
+{% include "includes/page_hero.html" %}
+<div class="container container--narrow">
+    <p class="job-card__meta job-card__meta--page"><span>{{ page.get_discipline_display }}</span><span>{{ page.employment_type }}</span><span>{% icon "pin" 16 %} {{ page.location }}</span></p>
+    <p class="prose--lead">{{ page.summary }}</p>
+</div>
+<div class="page-body">{% for block in page.body %}{% include_block block %}{% endfor %}</div>
+<div class="container container--narrow center block">
+    {% if page.apply_url %}<a class="btn btn--coral btn--large" href="{{ page.apply_url }}" rel="noopener">Apply now</a>
+    {% elif page.apply_email %}<a class="btn btn--coral btn--large" href="mailto:{{ page.apply_email }}?subject={{ page.title|urlencode }}">Apply by email</a>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% load wagtailimages_tags site_tags %}
+<section class="careers-band block">
+    {% include "includes/wave.html" with position="top" fill="var(--indigo)" %}
+    <div class="container careers-band__inner">
+        <div class="careers-band__text">
+            {% if value.eyebrow %}<p class="eyebrow eyebrow--light">{{ value.eyebrow }}</p>{% endif %}
+            <h2>{{ value.heading }}</h2>
+            {% if value.text %}<p>{{ value.text }}</p>{% endif %}
+            {% if value.points %}<ul class="careers-band__points">{% for p in value.points %}<li>{% icon "sparkle" 20 %}<span>{{ p }}</span></li>{% endfor %}</ul>{% endif %}
+            <a class="btn btn--sun" href="{{ value.button.url }}">{{ value.button.label|default:"See careers" }}</a>
+        </div>
+        <div class="careers-band__media">
+            {% if value.image %}{% image value.image fill-640x560 format-webp class="blob-photo" %}{% else %}{% include "includes/illustration.html" with name="team" %}{% endif %}
+        </div>
+    </div>
+    {% include "includes/wave.html" with fill="var(--paper)" %}
+</section>

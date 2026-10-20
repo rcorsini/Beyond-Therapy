@@ -1,0 +1,14 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<section class="section block">
+    <div class="container split split--image-{{ value.image_side }}">
+        <div class="split__text">
+            {% if value.eyebrow %}<p class="eyebrow">{{ value.eyebrow }}</p>{% endif %}
+            <h2>{{ value.heading }}</h2>
+            <div class="prose">{{ value.text|richtext }}</div>
+            {% if value.button.url %}<a class="btn btn--teal" href="{{ value.button.url }}">{{ value.button.label|default:"Learn more" }}</a>{% endif %}
+        </div>
+        <div class="split__media">
+            {% if value.image %}{% image value.image fill-720x600 format-webp class="blob-photo" %}{% else %}{% include "includes/illustration.html" with name=value.illustration %}{% endif %}
+        </div>
+    </div>
+</section>

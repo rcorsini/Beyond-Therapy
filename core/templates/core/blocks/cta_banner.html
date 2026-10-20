@@ -1,0 +1,15 @@
+<section class="section block">
+    <div class="container">
+        <div class="cta cta--{{ value.color }}">
+            <div>
+                <h2>{{ value.title }}</h2>
+                {% if value.text %}<p>{{ value.text }}</p>{% endif %}
+            </div>
+            <div class="cta__buttons">
+                <a class="btn btn--ink" href="{{ value.button.url }}">{{ value.button.label|default:"Get started" }}</a>
+                {% if value.secondary_button.url %}<a class="btn btn--ghost" href="{{ value.secondary_button.url }}">{{ value.secondary_button.label }}</a>{% endif %}
+            </div>
+            <span class="cta__shape" aria-hidden="true"></span>
+        </div>
+    </div>
+</section>

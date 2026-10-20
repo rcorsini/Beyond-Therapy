@@ -1,0 +1,26 @@
+{% load wagtailimages_tags site_tags %}
+<section class="section block story">
+    <div class="container">
+        <div class="story__head">
+            <div>
+                <h2 class="story__title">{{ value.heading }}</h2>
+                {% if value.parent_note %}<p class="story__note"><strong>For grown-ups:</strong> {{ value.parent_note }}</p>{% endif %}
+            </div>
+            <button class="btn btn--teal story__print" type="button" data-print>{% icon "doc" 18 %} Print this story</button>
+        </div>
+        <ol class="story__steps">
+            {% for step in value.steps %}
+            <li class="story__step">
+                <figure class="story__card">
+                    {% if step.photo %}
+                    {% image step.photo fill-720x540-c50 format-webp class="story__photo" alt=step.alt %}
+                    {% else %}
+                    <div class="story__placeholder story__placeholder--{% cycle 'sky' 'leaf' 'sun' 'grape' 'coral' 'teal' %}">{% icon step.icon 64 %}</div>
+                    {% endif %}
+                    <figcaption><span class="story__num" aria-hidden="true">{{ forloop.counter }}</span>{{ step.text }}</figcaption>
+                </figure>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>

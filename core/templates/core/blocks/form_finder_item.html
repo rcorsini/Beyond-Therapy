@@ -1,0 +1,14 @@
+{% load site_tags %}
+<li class="doc-list__item"{% if only_for %} data-finder-for="{{ only_for }}"{% endif %}>
+    <span class="doc-list__icon">{% icon "doc" 22 %}</span>
+    <span class="doc-list__text">
+        <strong>{{ f.title }}</strong>
+        {% if f.note %}<small>{{ f.note }}</small>{% endif %}
+        {% if labels %}<small class="finder__nojs">For: {{ labels }}</small>{% endif %}
+    </span>
+    <span class="doc-list__actions">
+        {% if f.online_url %}<a class="btn btn--lime btn--small" href="{{ f.online_url }}" rel="noopener" target="_blank">Fill out online<span class="visually-hidden"> {{ f.title }} (opens a secure form in a new tab)</span></a>{% endif %}
+        {% if f.document %}<a class="btn btn--ghost btn--small" href="{{ f.document.url }}" download>PDF<span class="visually-hidden"> of {{ f.title }}</span></a>{% endif %}
+        {% if not f.online_url and not f.document and s.email %}<a class="doc-list__type doc-list__type--muted" href="mailto:{{ s.email }}?subject={{ f.title|urlencode }}">Ask us for this form</a>{% endif %}
+    </span>
+</li>

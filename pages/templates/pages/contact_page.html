@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags site_tags %}
+{% block body_class %}template-contact{% endblock %}
+{% block content %}
+{% with s=settings.core.ClinicSettings %}
+{% include "includes/page_hero.html" %}
+<section class="section">
+    <div class="container contact-layout">
+        <div class="contact-layout__form">
+            {% if sent %}
+            <div class="form-thanks" role="status">{% icon "check" 28 %}<div>{{ page.thank_you_text|richtext }}</div></div>
+            {% elif page.intro %}<div class="prose">{{ page.intro|richtext }}</div>{% endif %}
+            {% if page.luxsci_form_id %}
+            {# LuxSci Secure Form: HIPAA-secure delivery and spam protection. The script must load, and the form name must match f= in its URL. #}
+            <script src="{{ page.luxsci_script_url }}"></script>
+            <noscript><p class="form__error">Our secure form needs JavaScript turned on. Please call or text {{ s.phone|default:"us" }} instead.</p></noscript>
+            {# If LuxSci's script is blocked, LuxSci would reject the message, so stop and say so instead of losing it. #}
+            <form class="form" name="secureform" method="post" action="{{ page.luxsci_action_url }}" onsubmit="if (typeof secureform_submit === 'function') return secureform_submit(); var m = document.getElementById('secureform-missing'); m.hidden = false; m.focus(); return false;">
+                <p class="form__error" id="secureform-missing" role="alert" tabindex="-1" hidden>Our secure form couldn't load, so your message wasn't sent. Please call or text {{ s.phone|default:"us" }}.</p>
+            {% else %}
+            <form class="form" action="{% pageurl page %}" method="post" novalidate>
+                {% csrf_token %}
+            {% endif %}
+                {% if form.non_field_errors %}<div class="form__error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+                {% for field in form %}
+                <div class="form__field{% if field.errors %} has-error{% endif %}{% if field.field.widget.input_type == 'checkbox' %} form__field--check{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="form__req" aria-hidden="true">*</span>{% endif %}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small id="{{ field.id_for_label }}-help">{{ field.help_text }}</small>{% endif %}
+                    {% for e in field.errors %}<p class="form__error" role="alert">{{ e }}</p>{% endfor %}
+                </div>
+                {% endfor %}
+                {% if page.luxsci_form_id %}
+                <p class="form__privacy">{% icon "shield" 16 %} Your message is sent securely through LuxSci, our HIPAA-compliant form service.</p>
+                {% else %}
+                <p class="form__privacy">{% icon "shield" 16 %} Please don't include medical details here. We'll talk privately when we call you back.</p>
+                {% endif %}
+                <button class="btn btn--coral btn--large" type="submit">Send message</button>
+            </form>
+        </div>
+        <aside class="contact-layout__info">
+            <div class="info-card" id="visit-or-call">
+                <h2>Visit or call</h2>
+                <p>{% icon "pin" 20 %} <span>{{ s.address_line_1 }}<br>{{ s.address_line_2 }}</span></p>
+                {% if s.phone %}<p>{% icon "phone" 20 %} <span><a href="tel:{{ s.phone_digits }}">{{ s.phone }}</a><br><small>Call or text</small></span></p>{% endif %}
+                {% if s.fax %}<p>{% icon "doc" 20 %} <span>Fax {{ s.fax }}</span></p>{% endif %}
+                {% if s.email %}<p>{% icon "mail" 20 %} <a href="mailto:{{ s.email }}">{{ s.email }}</a></p>{% endif %}
+                {% if s.hours %}<p>{% icon "clock" 20 %} <span>{{ s.hours }}</span></p>{% endif %}
+                {% if s.directions_url %}<a class="btn btn--ghost btn--block" href="{{ s.directions_url }}" rel="noopener">{% icon "pin" 18 %} Get directions</a>{% endif %}
+            </div>
+            {% if s.secure_contact_url and not page.luxsci_form_id %}
+            <div class="info-card info-card--secure">
+                <h2>{% icon "shield" 22 %} Sharing health details?</h2>
+                <p>Use our secure, HIPAA-compliant message form instead. It goes straight to our office.</p>
+                <a class="btn btn--indigo btn--block" href="{{ s.secure_contact_url }}" target="_blank" rel="noopener">Send a secure message<span class="visually-hidden"> (opens in a new tab)</span></a>
+            </div>
+            {% endif %}
+            {% if s.insurance_page %}<div class="contact-layout__more"><a href="{% pageurl s.insurance_page %}">Insurance and what to expect at your first visit</a></div>{% endif %}
+            {% if s.first_visit_page %}<div class="contact-layout__more"><a href="{% pageurl s.first_visit_page %}">See the clinic in photos before you come</a></div>{% endif %}
+            {% if s.map_embed_url %}<div class="map"><iframe title="Map to {{ s.clinic_name }}" src="{{ s.map_embed_url }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>{% endif %}
+        </aside>
+    </div>
+</section>
+{% endwith %}
+{% endblock %}

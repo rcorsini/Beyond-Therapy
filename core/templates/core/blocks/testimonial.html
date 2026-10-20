@@ -1,0 +1,9 @@
+<section class="section block">
+    <div class="container container--narrow">
+        <figure class="testimonial">
+            <svg class="testimonial__mark" viewBox="0 0 48 40" aria-hidden="true"><path d="M0 40V22C0 9 7 2 20 0l2 6C14 8 11 13 11 18h9v22zm26 0V22C26 9 33 2 46 0l2 6c-8 2-11 7-11 12h9v22z" fill="currentColor"/></svg>
+            <blockquote>{{ value.quote }}</blockquote>
+            <figcaption><strong>{{ value.name }}</strong>{% if value.role %} <span>{{ value.role }}</span>{% endif %}</figcaption>
+        </figure>
+    </div>
+</section>

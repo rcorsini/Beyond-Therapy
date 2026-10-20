@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags site_tags %}
+{% block title %}{{ member.name }}{% if member.credentials %}, {{ member.credentials }}{% endif %}{% endblock %}
+{% block body_class %}template-profile{% endblock %}
+{% block content %}
+<section class="page-hero page-hero--{{ member.color }}">
+    <div class="container page-hero__inner">
+        <nav class="page-hero__crumb" aria-label="Breadcrumb"><a href="{% pageurl page %}">{{ page.title }}</a></nav>
+        <h1 class="page-hero__title">{{ member.name }}{% if member.credentials %}<span class="visually-hidden">,</span> <span class="page-hero__creds">{{ member.credentials }}</span>{% endif %}</h1>
+    </div>
+    {% include "includes/wave.html" %}
+</section>
+<div class="container profile">
+    <aside class="profile__aside">
+        <div class="profile__photo team-card--{{ member.color }}">{% if member.photo %}{% image member.photo fill-480x480 format-webp alt="" %}{% else %}<span class="team-card__initials" aria-hidden="true">{{ member.initials }}</span>{% endif %}</div>
+        <p class="profile__tags"><span class="pill pill--indigo">{{ member.get_discipline_display }}</span>{% if member.title %}<span class="pill">{{ member.title }}</span>{% endif %}</p>
+        {% if member.favorite_thing %}<p class="team-card__fun">{% icon "heart" 16 %} {{ member.favorite_thing }}</p>{% endif %}
+    </aside>
+    <div class="profile__main prose">
+        {% if member.intro %}<p class="prose--lead">{{ member.intro }}</p>{% endif %}
+        {% if member.bio %}<p>{{ member.bio }}</p>{% endif %}
+        {% if member.licensure|split_lines %}<h2>Licensure and certification</h2><ul>{% for l in member.licensure|split_lines %}<li>{{ l }}</li>{% endfor %}</ul>{% endif %}
+        {% if member.education|split_lines %}<h2>Education</h2><ul>{% for l in member.education|split_lines %}<li>{{ l }}</li>{% endfor %}</ul>{% endif %}
+        {% if member.experience %}<h2>Clinical experience</h2>{{ member.experience|richtext }}{% endif %}
+        {% if not member.intro and not member.bio and not member.licensure|split_lines and not member.education|split_lines and not member.experience %}<p>{{ member.name }} is part of our {{ member.get_discipline_display|lower }} team. A full profile is coming soon.</p>{% endif %}
+        <p><a class="btn btn--ghost btn--small" href="{% pageurl page %}#providers">Back to all providers</a></p>
+    </div>
+</div>
+{% if teammates %}
+<section class="section">
+    <div class="container">
+        <div class="section-heading section-heading--center"><h2>More from {{ member.get_discipline_display }}</h2><div class="divider" aria-hidden="true"><span></span><span></span><span></span></div></div>
+        <ul class="team-grid">
+            {% for m in teammates %}{% include "includes/team_card.html" with brief=True %}{% endfor %}
+        </ul>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

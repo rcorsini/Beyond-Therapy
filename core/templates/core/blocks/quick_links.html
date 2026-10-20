@@ -1,0 +1,15 @@
+<section class="quick-links block">
+    <div class="container">
+        <ul class="quick-links__list">
+            {% for item in value.links %}
+            <li class="quick-links__item">
+                <span class="quick-links__num" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</span>
+                <div>
+                    <h2><a href="{{ item.link.url }}">{{ item.title }}</a></h2>
+                    {% if item.text %}<p>{{ item.text }}</p>{% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>

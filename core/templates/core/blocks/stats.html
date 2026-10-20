@@ -1,0 +1,9 @@
+<section class="section section--tight block">
+    <div class="container">
+        <dl class="stats">
+            {% for stat in value.stats %}
+            <div class="stats__item stats__item--{{ forloop.counter }}"><dt>{{ stat.label }}</dt><dd>{{ stat.number }}</dd></div>
+            {% endfor %}
+        </dl>
+    </div>
+</section>

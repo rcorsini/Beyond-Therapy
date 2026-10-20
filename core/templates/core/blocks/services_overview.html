@@ -1,0 +1,19 @@
+{% load wagtailcore_tags site_tags %}
+<section class="section section--services block">
+    <div class="container">
+        {% include "core/blocks/heading.html" with value=value.heading align="center" %}
+        <div class="service-grid">
+            {% for service in services %}
+            <a class="service-card service-card--{{ service.hero_color }}" href="{% pageurl service %}">
+                <span class="service-card__icon">{% icon service.icon 40 %}</span>
+                <h3>{{ service.title }}</h3>
+                <p>{{ service.summary }}</p>
+                <span class="service-card__more">Explore {{ service.short_name|default:service.title }} {% icon "arrow" 18 %}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% with index=services.first.get_parent %}{% if index %}
+        <div class="service-grid__more"><a href="{% pageurl index %}#does-this-sound-like-your-child">{% icon "search" 18 %} Not sure which therapy? See what to look for</a></div>
+        {% endif %}{% endwith %}
+    </div>
+</section>
