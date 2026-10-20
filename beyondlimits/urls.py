@@ -1,8 +1,8 @@
 from django.conf import settings
-from django.urls import include, path
+from django.urls import include, path, re_path
 
-from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from search import views as search_views
@@ -13,30 +13,18 @@ urlpatterns = [
     path("search/", search_views.search, name="search"),
 ]
 
-
 if settings.DEBUG:
     from django.conf.urls.static import static
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
-    # Serve static and media files from development server
     urlpatterns += staticfiles_urlpatterns()
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
 elif settings.SERVE_MEDIA:
-    # No separate file host yet (e.g. the Render preview), so Django serves
-    # uploaded images and documents itself. Fine for a preview; for launch,
-    # move media to object storage such as S3 or Cloudinary.
-    from django.urls import re_path
+    # No separate file host (the Render preview keeps uploads on its disk), so
+    # Django serves uploaded images and documents itself.
     from django.views.static import serve
 
     urlpatterns += [re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT})]
 
-urlpatterns = urlpatterns + [
-    # For anything not caught by a more specific rule above, hand over to
-    # Wagtail's page serving mechanism. This should be the last pattern in
-    # the list:
-    path("", include(wagtail_urls)),
-    # Alternatively, if you want Wagtail pages to be served from a subpath
-    # of your site, rather than the site root:
-    #    path("pages/", include(wagtail_urls)),
-]
+# Everything else is a Wagtail page. This must come last.
+urlpatterns += [path("", include(wagtail_urls))]

@@ -22,16 +22,16 @@
 <div class="container service-layout">
     <div class="service-layout__main">
         {% if page.intro %}<div class="prose prose--lead">{{ page.intro|richtext }}</div>{% endif %}
-        {% if page.helps_with_list %}
+        {% if page.helps_with|split_lines %}
         <section class="checklist checklist--{{ page.hero_color }}">
             <h2>Who we help</h2>
-            <ul class="checklist__cols">{% for item in page.helps_with_list %}<li>{% icon "check" 20 %}<span>{{ item }}</span></li>{% endfor %}</ul>
+            <ul class="checklist__cols">{% for item in page.helps_with|split_lines %}<li>{% icon "check" 20 %}<span>{{ item }}</span></li>{% endfor %}</ul>
         </section>
         {% endif %}
-        {% if page.what_we_offer_list %}
+        {% if page.what_we_offer|split_lines %}
         <section class="offer">
             <h2>What we offer</h2>
-            <ul class="offer__list">{% for item in page.what_we_offer_list %}<li>{% icon "sparkle" 20 %}<span>{{ item }}</span></li>{% endfor %}</ul>
+            <ul class="offer__list">{% for item in page.what_we_offer|split_lines %}<li>{% icon "sparkle" 20 %}<span>{{ item }}</span></li>{% endfor %}</ul>
         </section>
         {% endif %}
         {% if page.first_visit or page.photo %}

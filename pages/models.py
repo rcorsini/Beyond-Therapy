@@ -1,3 +1,8 @@
+"""Page types for every page except the home page, plus TeamMember (providers).
+
+See docs/ARCHITECTURE.md for how they fit together.
+"""
+
 from django.db import models
 from django.http import Http404, HttpResponseNotAllowed
 from django.template.response import TemplateResponse
@@ -18,6 +23,8 @@ HERO_COLOR_CHOICES = [("indigo", "Soft indigo")] + COLOR_CHOICES + [("navy", "Na
 
 
 class HeroMixin(models.Model):
+    """The colored title band at the top of every inner page (includes/page_hero.html)."""
+
     hero_intro = models.TextField(blank=True, help_text="One or two friendly sentences under the page title.")
     hero_color = models.CharField(max_length=10, choices=HERO_COLOR_CHOICES, default="indigo")
 
@@ -28,6 +35,8 @@ class HeroMixin(models.Model):
 
 
 class StandardPage(HeroMixin, Page):
+    """A general content page built from blocks: About, Get Started, Resources, Veterans, etc."""
+
     body = StreamField(BodyStreamBlock(), blank=True)
 
     content_panels = Page.content_panels + HeroMixin.hero_panels + [FieldPanel("body")]
@@ -35,6 +44,8 @@ class StandardPage(HeroMixin, Page):
 
 
 class ServiceIndexPage(HeroMixin, Page):
+    """The Services page. Lists its ServicePage children as cards above the body."""
+
     body = StreamField(BodyStreamBlock(), blank=True)
 
     content_panels = Page.content_panels + HeroMixin.hero_panels + [FieldPanel("body")]
@@ -47,6 +58,13 @@ class ServiceIndexPage(HeroMixin, Page):
 
 
 class ServicePage(HeroMixin, Page):
+    """One therapy (audiology, OT, PT, speech).
+
+    The structured fields feed this page and every card that lists services
+    (Services page, home page overview, sibling links). The multi-line text
+    fields hold one item per line; templates split them with |split_lines.
+    """
+
     short_name = models.CharField(max_length=40, blank=True, help_text="e.g. 'OT'")
     icon = models.CharField(max_length=20, choices=ICON_CHOICES, default="star")
     summary = models.TextField(help_text="One or two sentences for cards and listings.")
@@ -78,12 +96,6 @@ class ServicePage(HeroMixin, Page):
     parent_page_types = ["pages.ServiceIndexPage"]
     search_fields = Page.search_fields + [index.SearchField("summary"), index.SearchField("helps_with"), index.SearchField("body")]
 
-    def helps_with_list(self):
-        return [line.strip() for line in self.helps_with.splitlines() if line.strip()]
-
-    def what_we_offer_list(self):
-        return [line.strip() for line in self.what_we_offer.splitlines() if line.strip()]
-
     def siblings(self):
         return ServicePage.objects.sibling_of(self, inclusive=False).live().public()
 
@@ -96,6 +108,7 @@ DISCIPLINE_CHOICES = [
     ("office", "Front Office & Leadership"),
 ]
 
+# Accent color for each discipline's cards, badges and filter buttons (names match COLOR_CHOICES / site.css).
 DISCIPLINE_COLORS = {"audiology": "sky", "ot": "coral", "pt": "leaf", "slp": "grape", "office": "sun"}
 
 
@@ -143,6 +156,7 @@ class TeamMember(index.Indexed, models.Model):
         return f"{self.name}, {self.credentials}" if self.credentials else self.name
 
     def save(self, *args, **kwargs):
+        # Fill in a unique slug from the name (without "Dr.") when none was given.
         if not self.slug:
             base = slugify(self.name.replace("Dr.", "")) or "provider"
             slug, n = base, 2
@@ -151,14 +165,9 @@ class TeamMember(index.Indexed, models.Model):
             self.slug = slug
         super().save(*args, **kwargs)
 
-    def licensure_list(self):
-        return [line.strip() for line in self.licensure.splitlines() if line.strip()]
-
-    def education_list(self):
-        return [line.strip() for line in self.education.splitlines() if line.strip()]
-
     @property
     def url(self):
+        """Profile address under the Our Providers page, or "" if that page isn't live."""
         team_page = TeamPage.objects.live().first()
         return f"{team_page.url}{self.slug}/" if team_page else ""
 
@@ -173,6 +182,12 @@ class TeamMember(index.Indexed, models.Model):
 
 
 class TeamPage(RoutablePageMixin, HeroMixin, Page):
+    """Our Providers. Lists every TeamMember by discipline and serves their profiles.
+
+    Providers aren't pages, so their profile addresses (/our-providers/<slug>/)
+    are routes on this page rather than child pages.
+    """
+
     group_photo = models.ForeignKey(
         "wagtailimages.Image", null=True, blank=True, on_delete=models.SET_NULL, related_name="+",
         help_text="A photo of the whole team, shown above the providers. Any shape works: the whole photo is shown, "
@@ -199,6 +214,7 @@ class TeamPage(RoutablePageMixin, HeroMixin, Page):
 
     @path("<slug:slug>/")
     def profile(self, request, slug):
+        """One provider's profile, with up to four teammates from the same discipline."""
         member = TeamMember.objects.filter(slug=slug).first()
         if not member:
             raise Http404
@@ -220,6 +236,8 @@ class TeamPage(RoutablePageMixin, HeroMixin, Page):
 
 
 class CareersPage(HeroMixin, Page):
+    """The Careers page. Lists its open, published JobPage children."""
+
     body = StreamField(BodyStreamBlock(), blank=True)
     no_openings_text = models.CharField(
         max_length=255, blank=True,
@@ -240,6 +258,8 @@ class CareersPage(HeroMixin, Page):
 
 
 class JobPage(HeroMixin, Page):
+    """One job posting under Careers. Untick is_open to hide it without deleting it."""
+
     discipline = models.CharField(max_length=20, choices=DISCIPLINE_CHOICES)
     employment_type = models.CharField(max_length=40, default="Full-time")
     location = models.CharField(max_length=80, default="Acworth, GA")
@@ -264,6 +284,8 @@ class JobPage(HeroMixin, Page):
 
 
 class ContactFormField(AbstractFormField):
+    """A field on the contact form, edited inline on the Contact page."""
+
     page = ParentalKey("ContactPage", on_delete=models.CASCADE, related_name="form_fields")
 
 
@@ -271,6 +293,14 @@ LUXSCI_FORM_NAME = "secureform"  # LuxSci matches this name, case sensitive
 
 
 class ContactPage(HeroMixin, AbstractEmailForm):
+    """Contact Us: a form, map and contact details.
+
+    With a LuxSci code, the visitor's browser posts the form straight to LuxSci
+    (HIPAA-secure), so messages never reach this server, and LuxSci sends them
+    back to ?sent=1 for the thank-you text. Without one, it's an ordinary Wagtail
+    form that saves submissions in the admin and emails them.
+    """
+
     intro = RichTextField(blank=True)
     thank_you_text = RichTextField(blank=True)
     luxsci_form_id = models.CharField(
@@ -302,10 +332,12 @@ class ContactPage(HeroMixin, AbstractEmailForm):
 
     @property
     def luxsci_action_url(self):
+        """Where the form posts when LuxSci is on."""
         return f"https://secureform.luxsci.com/perl/post/{self.luxsci_form_id}"
 
     @property
     def luxsci_script_url(self):
+        """LuxSci's script, which adds its spam protection to the form named LUXSCI_FORM_NAME."""
         return f"https://secureform.luxsci.com/intranet/php/secureform.php?v=1&c={self.luxsci_form_id}&f={LUXSCI_FORM_NAME}"
 
     def get_context(self, request, *args, **kwargs):

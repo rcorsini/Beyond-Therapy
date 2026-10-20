@@ -1,0 +1,143 @@
+# Architecture
+
+A tour of the code for a developer picking the project up. For setup, deployment and editor notes, start with the [README](../README.md).
+
+The stack is deliberately small: Django 5.2+, Wagtail 7.4, Postgres on Render (SQLite locally), WhiteNoise for static files, django-axes for login lockout, and gunicorn. There's no front-end build step: one hand-written CSS file and one plain JavaScript file.
+
+## Layout
+
+```
+beyondlimits/            Django project
+  settings/base.py         shared settings (apps, axes, templates, storage, Wagtail)
+  settings/dev.py          local: DEBUG on, console email
+  settings/production.py   env-driven: secrets, hosts, secure cookies, WhiteNoise, logging, SMTP
+  urls.py                  admin, documents, search, media, then Wagtail's catch-all
+  templates/               base.html, 404/500, and shared includes (header, footer, page hero, art)
+  static/css/site.css      all styles
+  static/js/site.js        all behavior
+core/                    site-wide pieces
+  models.py                ClinicSettings (contact details, logo, global links)
+  blocks.py                every StreamField block, and the two StreamBlocks pages use
+  templates/core/blocks/   one template per block
+  templatetags/site_tags.py  {% icon %}, menu helpers, small filters
+  context_processors.py    the noindex flag
+  security.py              client IP for login lockout
+  management/commands/seed_site.py  builds the whole starter site
+  seed_images/             starter photos loaded by seed_site
+  fixtures/provider_profiles.json   provider profile text loaded by seed_site
+  tests/test_site.py       the test suite
+home/                    HomePage (slider + body)
+pages/                   every other page type, plus TeamMember (providers)
+  wagtail_hooks.py         puts Providers in the admin menu
+search/                  site search view (Wagtail's default, unchanged)
+docs/                    this file and the open questions for the clinic
+render.yaml              Render Blueprint for the preview (web service, Postgres, media disk)
+```
+
+Apps are listed before Wagtail's in `INSTALLED_APPS`, so templates here override Wagtail's.
+
+## Page tree
+
+`seed_site` creates this tree. URLs follow the slugs.
+
+```
+Home (HomePage, /)
+├── About Us (StandardPage)                      /about-us/
+├── Services (ServiceIndexPage)                  /services/
+│   ├── Audiology (ServicePage)                  /services/pediatric-audiology/
+│   ├── Occupational Therapy (ServicePage)
+│   ├── Physical Therapy (ServicePage)
+│   └── Speech-Language Therapy (ServicePage)
+├── Our Providers (TeamPage)                     /our-providers/  and /our-providers/<slug>/
+├── Get Started (StandardPage, form chooser)     /get-started/
+├── Resources (StandardPage)                     /resources/
+├── Contact Us (ContactPage)                     /contact/
+├── Careers (CareersPage)                        /careers/
+│   └── sample job posting (JobPage; meant to be a draft but currently live, see README "Before launch")
+├── Veterans Hearing Evaluations (StandardPage)  /veterans/       (navy theme, not in the main menu)
+├── HIPAA Privacy Policy (StandardPage)          /hipaa-privacy-policy/
+├── Your First Visit in Photos (StandardPage)    /first-visit/
+└── Insurance and Your First Visit (StandardPage) /insurance/
+```
+
+Pages with "Show in menus" ticked appear in the main navigation (`{% main_menu %}`). Careers, Veterans, HIPAA, Insurance and First visit are reached through `ClinicSettings` links in the top bar and footer instead.
+
+## Page types
+
+All in `pages/models.py` except `HomePage`.
+
+| Model | Notes |
+| --- | --- |
+| `HomePage` (`home/models.py`) | `slides` (a StreamField of `SlideBlock`) and `body` (`HomeStreamBlock`). Only one allowed. |
+| `HeroMixin` | Abstract. Adds `hero_intro` and `hero_color` (the colored title band, `includes/page_hero.html`) to every inner page. `navy` is the veterans theme. |
+| `StandardPage` | Header + `BodyStreamBlock`. Used for most content pages. |
+| `ServiceIndexPage` | Lists its `ServicePage` children (`services` in context). |
+| `ServicePage` | One therapy. Structured fields (summary, icon, age range, "helps with", "what we offer", first visit, photo) drive both the page and the service cards elsewhere. Multi-line text fields are "one item per line". |
+| `TeamPage` | A `RoutablePageMixin` page. `/our-providers/` lists all providers grouped by discipline (with a JS filter); `/our-providers/<slug>/` renders a `TeamMember` profile with `pages/team_member.html`. Both use `includes/team_card.html` for the provider cards. Unknown slugs 404. |
+| `CareersPage` / `JobPage` | Careers lists its open, live `JobPage` children. |
+| `ContactPage` | A Wagtail `AbstractEmailForm` with optional LuxSci hand-off. See below. |
+
+## Providers (`TeamMember`)
+
+Providers are a **snippet**, not pages: they're a list the clinic edits, and their profile URLs are generated by `TeamPage`'s routes. `pages/wagtail_hooks.py` registers them with a `SnippetViewSet` so they show as **Providers** in the admin's main menu instead of under Snippets.
+
+- `slug` is filled from the name on save (with "Dr." dropped, deduplicated with `-2`, `-3`). It's the profile URL and the headshot filename in `core/seed_images/providers/`.
+- `discipline` groups providers on the page and picks their accent color (`DISCIPLINE_COLORS`).
+- `is_clinician=False` marks office staff: they're listed, but `TeamTeaserBlock` on the home page shows clinicians only (a random sample).
+- Without a photo, cards show the provider's initials.
+
+## Content blocks (`core/blocks.py`)
+
+Every editable section is a StreamField block with its own template in `core/templates/core/blocks/`.
+
+- `BodyStreamBlock` is the menu of blocks available on every inner page.
+- `HomeStreamBlock` adds four home-only blocks: `QuickLinksBlock` (the numbered tiles overlapping the slider), `ServicesOverviewBlock`, `TeamTeaserBlock` and `CareersBandBlock`.
+- `LinkBlock` is the shared "page, or URL, plus optional #anchor" link. Its value's `.url` resolves to the right address, so templates just use `{{ value.button.url }}`.
+- A few blocks pull live data in `get_context` instead of storing it: `ServicesOverviewBlock` (all service pages with "show in overview"), `TeamTeaserBlock` (providers), and `ConditionsBlock` (merges every service's "helps with" lines into one searchable list; no longer on the seeded Services page, which uses `SignsBlock` cards instead, but still available to editors).
+- `FormFinderBlock` is the Get Started "which forms do I need" chooser: paths, optional follow-up options, and the forms for each. Without JavaScript every path and its forms are listed. Its content waits on the clinic's answers (see `docs/client-questions.md`).
+- `VisitStoryBlock` is the printable first-visit walk-through, written for the child; each step shows its icon until a real photo is added.
+- Color and icon choices are shared lists (`COLOR_CHOICES`, `ICON_CHOICES`). Icons are original SVG line drawings in `core/templatetags/site_tags.py` (`{% icon "ear" %}`); add new ones there and to `ICON_CHOICES`.
+
+Changing a block's fields means a new migration for every model using that StreamBlock (`home` and `pages`), and each one repeats the whole block definition. The old chains were squashed into one migration per app (`0001_squashed_*`); its `replaces` list lets databases that applied the old chain carry on. If they grow long again, squash them the same way once every database has migrated.
+
+## Templates and front end
+
+- `beyondlimits/templates/base.html` is the one layout: header, `{% block content %}`, footer, `site.css` and `site.js`. It adds the `noindex` tag when `SITE_NOINDEX=1`.
+- `includes/header.html` and `includes/footer.html` read contact details and global links from `settings.core.ClinicSettings` (via Wagtail's settings context processor).
+- `includes/page_hero.html` is the colored title band on inner pages, with breadcrumbs and butterflies.
+- `includes/illustration.html` holds original SVG scenes (`hero`, `blocks`, `garden`, `team`, `gym`), used wherever a photo is missing. `includes/butterfly.html` and `butterfly_defs.html` are the rainbow butterflies.
+- `static/css/site.css` is organized by section (`/* ---------- Home slider ---------- */` etc.), with brand colors as custom properties at the top.
+- `static/js/site.js` is one IIFE of small, independent features, each found by a `data-` attribute: mobile menu (`data-nav`), sticky header shadow, team filter (`data-filter`), print buttons, home slider (`data-slider`, with the checkerboard tile transition), form finder, conditions filter, back-to-top, and scroll reveal. The page works without JavaScript; `js` on `<html>` gates JS-only styles.
+- Motion: every animation checks `prefers-reduced-motion`. Keep it that way.
+
+## Contact form and LuxSci
+
+`ContactPage` has two modes, chosen by the `luxsci_form_id` field:
+
+1. **LuxSci on (the default seeded state).** The template renders the form with `action` set to LuxSci's endpoint (`luxsci_action_url`) and loads LuxSci's script (`luxsci_script_url`), which adds its spam protection. The `<form name="secureform">` must match `LUXSCI_FORM_NAME`, because LuxSci matches on it. If the script fails to load, the inline `onsubmit` stops the send and shows a message instead of letting LuxSci silently reject it. The browser posts directly to LuxSci, so health details never touch this server. `ContactPage.serve` returns 405 for any POST to the page itself, so nothing can be saved or logged here by mistake. LuxSci redirects back to `?sent=1`, which sets `sent` in the context to show the thank-you text.
+2. **LuxSci off (blank code).** Standard Wagtail form behavior: submissions are stored in the admin and emailed to `to_address`.
+
+The separate "secure message" card (`ClinicSettings.secure_contact_url`) is hidden while LuxSci is on, since the main form is already secure. The admission forms on Get Started are plain links to the clinic's existing LuxSci forms.
+
+## Security
+
+- **Login lockout:** django-axes, configured in `settings/base.py` (5 failures, 1 hour, per username + address, reset on success). `AXES_CLIENT_IP_CALLABLE` points at `core.security.client_ip`.
+- **Client IP (`core/security.py`):** on Render, every request arrives through Cloudflare and then Render's proxy, so `REMOTE_ADDR` and the last `X-Forwarded-For` entry are Render's internal address, which would lock out everyone at once. The function trusts `CF-Connecting-IP` / `True-Client-IP`, which Cloudflare overwrites and visitors can't fake. **If the site moves to a host that isn't behind Cloudflare, those headers become fakeable: change this function** to whatever the new host guarantees. Tests in `AdminLockoutTests` cover it.
+- **Django's own admin** isn't mounted; only Wagtail's admin at `/admin/` is.
+- **Production settings:** secure cookies, HTTPS detection through the proxy header, CSRF trusted origins from the allowed hosts. Error logging goes to the console (Render's log) and logs tracebacks only, never form contents.
+- **Uploads:** document uploads are limited to a list of extensions and 10 MB (`WAGTAILDOCS_*`).
+
+## Data and media
+
+- **Database:** Postgres when `DATABASE_URL` is set (Render provides it from `render.yaml`), otherwise SQLite (`SQLITE_PATH`).
+- **Static files:** collected to `/static/` and served by WhiteNoise with hashed, compressed names in production.
+- **Media (uploads):** written to `MEDIA_ROOT`, which on Render is the persistent disk. With debug off, `SERVE_MEDIA=1` makes Django serve them (`beyondlimits/urls.py`). Object storage (S3, Cloudinary) is only needed if traffic or storage outgrows the disk.
+- **Search:** Wagtail's database search backend over live pages (`search/views.py`).
+
+## Conventions
+
+- Keep code original: no files, CSS, JS or images from the Little Ones template or the developer's build (their *text* may be reused).
+- Comments explain *why*, in plain language, especially accessibility and HIPAA decisions.
+- Field `help_text` is written for clinic staff, not developers. Changing it creates a migration.
+- `seed_site` only fills an empty database, so new content for the existing preview goes in through the admin. Keep `seed_site.py` in step only for fresh installs.
+- Run `python manage.py test` and `makemigrations --check`, and check WAVE/axe on anything visual, before pushing.

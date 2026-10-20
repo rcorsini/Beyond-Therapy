@@ -1,7 +1,15 @@
+"""StreamField blocks for every editable page section.
+
+Each block renders with its template in core/templates/core/blocks/.
+BodyStreamBlock is what inner pages offer editors; HomeStreamBlock adds the
+home-only blocks. Changing a block's fields needs a migration in home and pages.
+"""
+
 from wagtail import blocks
 from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.images.blocks import ImageChooserBlock
 
+# Icons editors can pick. Each name must exist in ICONS in core/templatetags/site_tags.py.
 ICON_CHOICES = [
     ("ear", "Ear (audiology)"),
     ("hand", "Hand (occupational therapy)"),
@@ -29,6 +37,7 @@ ICON_CHOICES = [
     ("users", "People"),
 ]
 
+# Accent colors editors can pick. Each name has matching classes in site.css.
 COLOR_CHOICES = [
     ("sun", "Sunny yellow"),
     ("coral", "Coral"),
@@ -41,6 +50,7 @@ COLOR_CHOICES = [
 
 class LinkStructValue(blocks.StructValue):
     def url(self):
+        """The chosen page (plus #anchor if given), else the external address, else ""."""
         page = self.get("page")
         if page:
             anchor = (self.get("anchor") or "").lstrip("#")
@@ -49,6 +59,8 @@ class LinkStructValue(blocks.StructValue):
 
 
 class LinkBlock(blocks.StructBlock):
+    """A button or link: a page on this site or a web address. Templates use value.url."""
+
     label = blocks.CharBlock(required=False)
     page = blocks.PageChooserBlock(required=False)
     external_url = blocks.URLBlock(required=False, label="Or a web address")
@@ -60,6 +72,8 @@ class LinkBlock(blocks.StructBlock):
 
 
 class HeadingBlock(blocks.StructBlock):
+    """A section heading with an optional small line above and intro below."""
+
     eyebrow = blocks.CharBlock(required=False, help_text="Small line above the heading.")
     heading = blocks.CharBlock()
     intro = blocks.TextBlock(required=False)
@@ -90,6 +104,8 @@ class CardBlock(blocks.StructBlock):
 
 
 class CardGridBlock(blocks.StructBlock):
+    """A grid of icon cards, each with optional text and link."""
+
     heading = HeadingBlock(required=False)
     cards = blocks.ListBlock(CardBlock())
 
@@ -99,6 +115,8 @@ class CardGridBlock(blocks.StructBlock):
 
 
 class StepsBlock(blocks.StructBlock):
+    """Numbered steps, e.g. how to get started."""
+
     heading = HeadingBlock(required=False)
     steps = blocks.ListBlock(
         blocks.StructBlock(
@@ -200,6 +218,8 @@ class StatsBlock(blocks.StructBlock):
 
 
 class CTABannerBlock(blocks.StructBlock):
+    """A colored call-to-action band with one or two buttons."""
+
     color = blocks.ChoiceBlock(choices=COLOR_CHOICES, default="teal")
     title = blocks.CharBlock()
     text = blocks.TextBlock(required=False)
@@ -232,6 +252,8 @@ class SplitBlock(blocks.StructBlock):
 
 
 class FormItemBlock(blocks.StructBlock):
+    """One form in the form finder: a secure online link, a PDF, or both."""
+
     title = blocks.CharBlock()
     online_url = blocks.URLBlock(required=False, help_text="Secure online form (e.g. LuxSci). Shown as 'Fill out online'.")
     document = DocumentChooserBlock(required=False, help_text="Printable PDF, if there is one.")
@@ -239,12 +261,16 @@ class FormItemBlock(blocks.StructBlock):
 
 
 class FormFinderOptionBlock(blocks.StructBlock):
+    """A second-step answer in the form finder (e.g. which service) and its forms."""
+
     label = blocks.CharBlock()
     forms = blocks.ListBlock(FormItemBlock(), required=False)
     note = blocks.RichTextBlock(features=["bold", "italic", "link"], required=False)
 
 
 class FormFinderPathBlock(blocks.StructBlock):
+    """A first-step answer in the form finder (e.g. "My child is new")."""
+
     label = blocks.CharBlock(help_text="e.g. 'My child is new to Beyond Limits'")
     description = blocks.CharBlock(required=False)
     icon = blocks.ChoiceBlock(choices=ICON_CHOICES, default="family")
@@ -286,12 +312,13 @@ class ConditionsBlock(blocks.StructBlock):
         template = "core/blocks/conditions.html"
 
     def get_context(self, value, parent_context=None):
+        from core.templatetags.site_tags import split_lines
         from pages.models import ServicePage
 
         context = super().get_context(value, parent_context)
         rows = {}
         for service in ServicePage.objects.live().public().order_by("path"):
-            for name in service.helps_with_list():
+            for name in split_lines(service.helps_with):
                 row = rows.setdefault(name.lower(), {"name": name, "services": []})
                 row["services"].append(service)
         context["conditions"] = sorted(rows.values(), key=lambda r: r["name"].lower())
@@ -354,6 +381,8 @@ class VisitStoryBlock(blocks.StructBlock):
 
 
 class BodyStreamBlock(blocks.StreamBlock):
+    """The blocks editors can add to the body of any inner page."""
+
     heading = HeadingBlock()
     paragraph = blocks.RichTextBlock(
         features=["h2", "h3", "bold", "italic", "link", "ol", "ul", "document-link"],
@@ -415,6 +444,8 @@ class TeamTeaserBlock(blocks.StructBlock):
 
 
 class CareersBandBlock(blocks.StructBlock):
+    """The "Work with us" band on the home page, for recruiting therapists."""
+
     eyebrow = blocks.CharBlock(required=False, default="Work with us")
     heading = blocks.CharBlock()
     text = blocks.TextBlock(required=False)
@@ -441,6 +472,8 @@ class QuickLinksBlock(blocks.StructBlock):
 
 
 class SlideBlock(blocks.StructBlock):
+    """One slide of the home page slider. Rotation and the tile transition are in site.js."""
+
     image = ImageChooserBlock(required=False, help_text="Shown in the round-topped frame on the right, cropped square around the focal point. Without one, the illustration below is shown.")
     background = blocks.ChoiceBlock(choices=COLOR_CHOICES + [("indigo", "Soft indigo")], default="indigo")
     illustration = blocks.ChoiceBlock(
@@ -463,6 +496,8 @@ class SlideBlock(blocks.StructBlock):
 
 
 class HomeStreamBlock(BodyStreamBlock):
+    """Everything in BodyStreamBlock plus the home-only blocks."""
+
     quick_links = QuickLinksBlock()
     services_overview = ServicesOverviewBlock()
     team_teaser = TeamTeaserBlock()
