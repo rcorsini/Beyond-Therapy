@@ -655,10 +655,26 @@ main:focus { outline: none; }
 .finder__note { margin-bottom: 14px; }
 .finder__return { display: flex; gap: 12px; background: var(--lime-soft); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; }
 .finder__return .icon { flex: none; margin-top: 3px; color: var(--lime-deep); }
-.finder__nojs-title { margin-top: 12px; }
-.js .finder__nojs-title { display: none; }
+.finder__hint { margin: -6px 0 14px; color: var(--ink-soft); }
+.finder__choices--multi .finder__choice::before {
+    content: ""; flex: none; width: 24px; height: 24px; border: 2px solid var(--indigo); border-radius: 7px; background: var(--paper);
+    display: grid; place-items: center; color: #fff; font-weight: 800; line-height: 1;
+}
+.finder__choices--multi .finder__choice[aria-pressed="true"]::before { content: "\2713"; background: var(--indigo); }
+.finder__choices--multi .finder__choice--small { justify-content: flex-start; text-align: left; }
+.finder__note--first { background: var(--sun-soft); border-radius: 14px; padding: 14px 16px; }
+/* The forms are steps in order, so number them in place of the document icon. */
+.finder__forms { counter-reset: form; }
+.finder__forms > li { counter-increment: form; }
+.finder__forms .doc-list__icon { background: var(--indigo); color: #fff; font-weight: 800; font-size: 1.15rem; }
+.finder__forms .doc-list__icon .icon { display: none; }
+.finder__forms .doc-list__icon::before { content: counter(form); }
+h3.finder__nojs { margin-top: 12px; }
+.js .finder__nojs { display: none; }
 .js .finder__panel, .js .finder__result { display: none; }
-.js .finder__panel.is-open, .js .finder__result.is-open { display: block; }
+.js .finder__panel.is-open, .js .finder__result.is-open { display: block; animation: finder-in .3s ease-out; }
+@keyframes finder-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .js .finder__panel.is-open, .js .finder__result.is-open { animation: none; } }
 a.doc-list__type { text-decoration: none; color: var(--indigo); }
 a.doc-list__type:hover { text-decoration: underline; }
 @media (max-width: 560px) { .doc-list__item { flex-wrap: wrap; } }

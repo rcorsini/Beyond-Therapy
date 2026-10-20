@@ -32,10 +32,14 @@ class SeededSiteTests(TestCase):
             with self.subTest(url=url):
                 self.assertContains(self.client.get(url), 'href="/veterans/"')
 
-    def test_form_finder_lists_feeding_forms(self):
+    def test_form_finder_combines_therapy_forms(self):
         response = self.client.get("/get-started/")
-        self.assertContains(response, "ST/OT Feeding Intake Form")
-        self.assertContains(response, "data-finder-option")
+        self.assertContains(response, "data-finder-multi")
+        # General Admissions is listed once and always shown; each therapy form only for its answer.
+        self.assertContains(response, "<strong>General Admissions Form</strong>", count=1)
+        self.assertContains(response, '<li class="doc-list__item" data-finder-for="1">')
+        self.assertContains(response, "https://beyond-limits.secure-form.com/feeding-n/", count=2)  # new, and adding a therapy
+        self.assertNotContains(response, "Upper Extremity")
 
     def test_seeded_headshots_replace_initials(self):
         from pages.models import TeamMember

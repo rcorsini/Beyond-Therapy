@@ -140,38 +140,49 @@
     if (reduce) setPaused(true); else start();
   }
 
-  // Form finder: step 1 picks a path, step 2 (if any) picks an option, then the forms show.
+  // Form finder: step 1 picks a path, step 2 (if any) picks one option, or several on
+  // a "pick several" path, and the path's list shows only the forms for those answers.
   document.querySelectorAll("[data-finder]").forEach(function (finder) {
-    var press = function (buttons, active) {
-      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b === active)); });
-    };
-    var showResult = function (result) {
-      finder.querySelectorAll("[data-finder-result]").forEach(function (r) { r.classList.toggle("is-open", r === result); });
-      if (result) result.focus({ preventScroll: false });
+    var update = function (panel, moveFocus) {
+      var picked = Array.prototype.filter.call(panel.querySelectorAll("[data-finder-option]"), function (b) {
+        return b.getAttribute("aria-pressed") === "true";
+      }).map(function (b) { return b.getAttribute("data-finder-option"); });
+      var result = panel.querySelector("[data-finder-result]");
+      var hasOptions = !!panel.querySelector("[data-finder-option]");
+      result.querySelectorAll("[data-finder-for]").forEach(function (el) {
+        el.hidden = !el.getAttribute("data-finder-for").split(" ").some(function (n) { return picked.indexOf(n) > -1; });
+      });
+      var list = result.querySelector("[data-finder-list]");
+      var count = list ? list.querySelectorAll("li:not([hidden])").length : 0;
+      if (list) list.hidden = !count;
+      var ret = result.querySelector("[data-finder-return]");
+      if (ret) ret.hidden = !count;
+      result.classList.toggle("is-open", !hasOptions || picked.length > 0);
+      if (count) result.querySelector("[data-finder-status]").textContent = count + (count === 1 ? " form" : " forms") + " on your list.";
+      if (moveFocus && result.classList.contains("is-open")) result.focus();
     };
     var pathButtons = finder.querySelectorAll("[data-finder-path]");
     pathButtons.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        var id = btn.getAttribute("data-finder-path");
-        press(pathButtons, btn);
-        var panel = null;
-        finder.querySelectorAll("[data-finder-panel]").forEach(function (p) {
-          var on = p.getAttribute("data-finder-panel") === id;
-          p.classList.toggle("is-open", on);
-          if (on) panel = p;
+        pathButtons.forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
+        finder.querySelectorAll("[data-finder-panel]").forEach(function (panel) {
+          var on = panel.getAttribute("data-finder-panel") === btn.getAttribute("data-finder-path");
+          panel.classList.toggle("is-open", on);
+          if (!on) return;
+          var options = panel.querySelectorAll("[data-finder-option]");
+          options.forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+          update(panel, !options.length);
+          if (options.length) options[0].focus();
         });
-        if (!panel) return;
-        var options = panel.querySelectorAll("[data-finder-option]");
-        press(options, null);
-        if (options.length) { showResult(null); options[0].focus(); }
-        else showResult(panel.querySelector("[data-finder-result]"));
       });
     });
     finder.querySelectorAll("[data-finder-option]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var panel = btn.closest("[data-finder-panel]");
-        press(panel.querySelectorAll("[data-finder-option]"), btn);
-        showResult(finder.querySelector('[data-finder-result="' + btn.getAttribute("data-finder-option") + '"]'));
+        var multi = panel.hasAttribute("data-finder-multi");
+        if (multi) btn.setAttribute("aria-pressed", String(btn.getAttribute("aria-pressed") !== "true"));
+        else panel.querySelectorAll("[data-finder-option]").forEach(function (b) { b.setAttribute("aria-pressed", String(b === btn)); });
+        update(panel, !multi);
       });
     });
   });

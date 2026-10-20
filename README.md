@@ -113,7 +113,7 @@ After sending, LuxSci should send families back to `/contact/?sent=1`, which sho
 
 Clearing the code falls back to a normal Wagtail form that saves submissions in the admin and emails them. Only do that if no health details will ever come through it.
 
-The eight admission forms on Get Started are separate LuxSci forms the clinic already uses, linked by URL.
+The forms on Get Started are separate LuxSci forms the clinic already uses, linked by URL: the older ones at `secureform.luxsci.com/forms/18016/...` and the newer therapy and feeding forms (October 2026) at `beyond-limits.secure-form.com/...`. Their wording lives in `get_started_blocks()` in `seed_site.py`; on the live site, edit them on the Get Started page in the admin.
 
 ### Admin login lockout
 
@@ -142,7 +142,7 @@ Waiting on the clinic:
 - [ ] **Photos**: real team photo (replaces the stand-in on Our Providers, which shows another organization's wall sign), clinic photos for the first-visit story and hiring slide, more provider headshots. A shot list was sent.
 - [ ] **High-resolution logo** (SVG, AI, EPS, or PNG 1000px+). The current file is 175px wide.
 - [ ] **Provider profiles** reviewed by each provider.
-- [ ] **Forms homework**: who fills out which admission form, and when. Get Started is parked until this comes back. See `docs/client-questions.md`.
+- [ ] **New forms**: confirm the names and roles of the four new forms on Get Started (speech, OT and PT patient forms, feeding intake) and the other assumptions listed in `docs/client-questions.md`.
 - [ ] **LuxSci**: confirm form account 18249 (contact) belongs to the clinic under its HIPAA agreement (the admission forms use 18016), and set its after-send page to `/contact/?sent=1`.
 - [ ] **Slide wording** confirmed by the clinic.
 
