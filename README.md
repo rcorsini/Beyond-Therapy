@@ -66,7 +66,7 @@ Where the content comes from:
 
 ## Preview on Render
 
-`render.yaml` is a Render Blueprint for a preview that redeploys on every push to `feature/wagtail-site`: a $7 web service, a $6 Render Postgres database and a 1 GB persistent disk for uploads ($0.25), about $13.25 a month. To set one up: in Render choose **New > Blueprint**, pick this repository and branch, and enter an admin username, email and password when asked. Change plans in `render.yaml`, not the Render dashboard, or the Blueprint can change them back.
+`render.yaml` is a Render Blueprint for a preview that redeploys on every push to `main`: a $7 web service, a $6 Render Postgres database and a 1 GB persistent disk for uploads ($0.25), about $13.25 a month. To set one up: in Render choose **New > Blueprint**, pick this repository and branch, and enter an admin username, email and password when asked. Change plans in `render.yaml`, not the Render dashboard, or the Blueprint can change them back.
 
 On each start the service runs `migrate`, then `seed_site`, then `createsuperuser` (from the `DJANGO_SUPERUSER_*` variables), then gunicorn.
 

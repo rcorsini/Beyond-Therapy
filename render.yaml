@@ -8,7 +8,7 @@ services:
     name: beyond-limits-preview
     runtime: python
     plan: 0.5c-512mb  # $7/month
-    branch: feature/wagtail-site
+    branch: main
     autoDeploy: true
     buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: >-
