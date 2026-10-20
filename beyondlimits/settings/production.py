@@ -20,7 +20,10 @@ CSRF_COOKIE_SECURE = True
 
 # WhiteNoise serves the hashed, compressed static files straight from the app,
 # so no separate static host is needed.
-STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 # Server errors go to the console, which Render keeps as the service's log.
 # Only the error and its traceback are logged, never form contents.

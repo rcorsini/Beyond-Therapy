@@ -19,10 +19,10 @@
     <div class="profile__main prose">
         {% if member.intro %}<p class="prose--lead">{{ member.intro }}</p>{% endif %}
         {% if member.bio %}<p>{{ member.bio }}</p>{% endif %}
-        {% if member.licensure_list %}<h2>Licensure and certification</h2><ul>{% for l in member.licensure_list %}<li>{{ l }}</li>{% endfor %}</ul>{% endif %}
-        {% if member.education_list %}<h2>Education</h2><ul>{% for l in member.education_list %}<li>{{ l }}</li>{% endfor %}</ul>{% endif %}
+        {% if member.licensure|split_lines %}<h2>Licensure and certification</h2><ul>{% for l in member.licensure|split_lines %}<li>{{ l }}</li>{% endfor %}</ul>{% endif %}
+        {% if member.education|split_lines %}<h2>Education</h2><ul>{% for l in member.education|split_lines %}<li>{{ l }}</li>{% endfor %}</ul>{% endif %}
         {% if member.experience %}<h2>Clinical experience</h2>{{ member.experience|richtext }}{% endif %}
-        {% if not member.intro and not member.bio and not member.licensure_list and not member.education_list and not member.experience %}<p>{{ member.name }} is part of our {{ member.get_discipline_display|lower }} team. A full profile is coming soon.</p>{% endif %}
+        {% if not member.intro and not member.bio and not member.licensure|split_lines and not member.education|split_lines and not member.experience %}<p>{{ member.name }} is part of our {{ member.get_discipline_display|lower }} team. A full profile is coming soon.</p>{% endif %}
         <p><a class="btn btn--ghost btn--small" href="{% pageurl page %}#providers">Back to all providers</a></p>
     </div>
 </div>

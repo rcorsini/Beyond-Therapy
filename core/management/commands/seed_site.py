@@ -129,6 +129,8 @@ PROVIDERS = [
     ("Mandy Bridges", "", "Scheduling Coordinator", "office", False),
 ]
 
+INSURERS = ["Amerigroup", "CareSource", "Peach State", "BlueCross", "Ambetter", "Tricare", "Wellcare (Audiology only)"]
+
 SERVICES = [
     {
         "title": "Audiology",
@@ -218,6 +220,11 @@ class Command(BaseCommand):
             page.save_revision().publish()
             return page
 
+        def fill(page, *blocks):
+            """Set a page's body blocks and publish it."""
+            page.body = stream(*blocks)
+            page.save_revision().publish()
+
         about = add(home, StandardPage(
             title="About Us", slug="about-us", show_in_menus=True, hero_color="sky",
             hero_intro="Founded by parents of children with special needs, Beyond Limits brings exceptional pediatric therapy together in one place.",
@@ -277,13 +284,13 @@ class Command(BaseCommand):
             hero_intro="What we'll check before your child's first visit, what to bring, and how long it takes to get started.",
         ))
 
-        for i, (sort, label, ftype, required, choices) in enumerate([
-            (1, "Your name", "singleline", True, ""),
-            (2, "Phone", "singleline", True, ""),
-            (3, "Email", "email", True, ""),
-            (4, "I'm interested in", "dropdown", False, "Not sure yet\nAudiology\nOccupational Therapy\nPhysical Therapy\nSpeech-Language Therapy\nVeterans hearing evaluation\nCareers"),
-            (5, "How can we help?", "multiline", True, ""),
-        ]):
+        for sort, (label, ftype, required, choices) in enumerate([
+            ("Your name", "singleline", True, ""),
+            ("Phone", "singleline", True, ""),
+            ("Email", "email", True, ""),
+            ("I'm interested in", "dropdown", False, "Not sure yet\nAudiology\nOccupational Therapy\nPhysical Therapy\nSpeech-Language Therapy\nVeterans hearing evaluation\nCareers"),
+            ("How can we help?", "multiline", True, ""),
+        ], start=1):
             ContactFormField.objects.create(page=contact, sort_order=sort, label=label, field_type=ftype, required=required, choices=choices)
 
         profiles = json.loads((Path(__file__).resolve().parents[2] / "fixtures" / "provider_profiles.json").read_text())
@@ -337,7 +344,6 @@ class Command(BaseCommand):
                 "title": "Autism, sensory and developmental care.",
                 "text": "Speech, OT, PT and audiology specialists who plan your child's care together.",
                 "button": link("See what to look for", services, anchor="does-this-sound-like-your-child"),
-                "note": "",
             }),
             block("slide", {
                 "image": image_id("slide-3.jpg", "Home slide 3 (starter photo)"),
@@ -346,7 +352,6 @@ class Command(BaseCommand):
                 "title": "A clinic built for kids.",
                 "text": "Two therapy gyms, two sensory gyms, feeding rooms and parent viewing windows.",
                 "button": link("Take the photo tour", first_visit),
-                "note": "",
             }),
             block("slide", {
                 # The clinic's real team photo only: a stock "team" would pass strangers off as staff.
@@ -356,10 +361,9 @@ class Command(BaseCommand):
                 "title": "Love what you do here.",
                 "text": "Join a team of pediatric specialists who mentor each other and celebrate every win.",
                 "button": link("See careers", careers),
-                "note": "",
             }),
         )
-        home.body = stream(
+        fill(home,
             block("quick_links", {"links": [
                 {"title": "New family admission forms", "text": "Complete before scheduling with us", "link": link("", get_started)},
                 {"title": "Our providers", "text": "Meet the people behind the progress", "link": link("", team)},
@@ -374,7 +378,7 @@ class Command(BaseCommand):
                         "<li>A care plan built around your child's needs and your family's goals</li>"
                         "<li>A calm, kid-friendly clinic with sensory gyms and parent viewing windows</li>"
                         "<li>Help with insurance and paperwork before your first visit</li></ul>",
-                "image": None, "illustration": "blocks", "image_side": "left",
+                "illustration": "blocks", "image_side": "left",
                 "button": link("Get started", get_started),
             }),
             block("services_overview", {"heading": heading("Our therapy services", "Growing skills, building confidence")}),
@@ -389,7 +393,7 @@ class Command(BaseCommand):
                 "heading": "Taking your child beyond their limits",
                 "text": "<p>Progress happens when the child, the family and the care team work together. We set goals with you, share what we're working on, and give you simple ways to keep the momentum going at home.</p>"
                         "<p>Our clinic has two large therapy gyms, two sensory gyms, two feeding therapy rooms, private treatment rooms and a work bar where parents can get things done while they wait.</p>",
-                "image": None, "illustration": "gym", "image_side": "right",
+                "illustration": "gym", "image_side": "right",
                 "button": link("About us", about),
             }),
             block("testimonial", {
@@ -397,12 +401,12 @@ class Command(BaseCommand):
                 "name": "Melisa Chun", "role": "Grace's mom",
             }),
             block("cards", {"heading": heading("The Super Six", "Our core values", "Six promises every member of our team makes to every family."), "cards": [
-                {"icon": "heart", "color": "coral", "title": "Passion", "text": "We love what we do, and kids can tell.", "link": link()},
-                {"icon": "calendar", "color": "sky", "title": "Disciplined", "text": "Consistent, evidence-based care, session after session.", "link": link()},
-                {"icon": "chat", "color": "teal", "title": "Transparent", "text": "Honest updates, clear goals and no surprises.", "link": link()},
-                {"icon": "check", "color": "sun", "title": "Accountable", "text": "We own our work and your child's progress. It's central to our success.", "link": link()},
-                {"icon": "users", "color": "grape", "title": "Teamwork", "text": "Therapists, families and doctors working as one.", "link": link()},
-                {"icon": "star", "color": "leaf", "title": "Excellence", "text": "Always learning so every child gets our best.", "link": link()},
+                {"icon": "heart", "color": "coral", "title": "Passion", "text": "We love what we do, and kids can tell."},
+                {"icon": "calendar", "color": "sky", "title": "Disciplined", "text": "Consistent, evidence-based care, session after session."},
+                {"icon": "chat", "color": "teal", "title": "Transparent", "text": "Honest updates, clear goals and no surprises."},
+                {"icon": "check", "color": "sun", "title": "Accountable", "text": "We own our work and your child's progress. It's central to our success."},
+                {"icon": "users", "color": "grape", "title": "Teamwork", "text": "Therapists, families and doctors working as one."},
+                {"icon": "star", "color": "leaf", "title": "Excellence", "text": "Always learning so every child gets our best."},
             ]}),
             block("team_teaser", {
                 "heading": heading("Meet the people behind the progress", "Our team"),
@@ -417,7 +421,7 @@ class Command(BaseCommand):
                     "Work alongside every pediatric discipline",
                     "Sensory gyms and space built for great therapy",
                 ],
-                "button": link("See open roles", careers), "image": None,
+                "button": link("See open roles", careers),
             }),
             block("steps", {"heading": heading("Here for your family", "Your next steps"), "steps": [
                 {"title": "New patient admission forms", "text": "Fill these out before your first visit.", "link": link("Start here", get_started)},
@@ -426,15 +430,14 @@ class Command(BaseCommand):
                 {"title": "Schedule a tour", "text": "Come see the gyms and meet the team.", "link": link("See the clinic", contact)},
             ]}),
         )
-        home.save_revision().publish()
 
         # ---------------- About ----------------
-        about.body = stream(
+        fill(about,
             block("split", {
                 "eyebrow": "Our story", "heading": "Started by parents, for families like yours",
                 "text": "<p>Beyond Limits opened in March 2014, founded by parents of children with special needs. Their vision was simple: bring exceptional pediatric therapy together in one convenient place, so families don't have to drive all over town for care.</p>"
                         "<p>Today we provide audiology, occupational therapy, physical therapy and speech-language therapy for more than 750 children every week.</p>",
-                "image": None, "illustration": "garden", "image_side": "right", "button": link("Meet our providers", team),
+                "illustration": "garden", "image_side": "right", "button": link("Meet our providers", team),
             }),
             block("stats", {"stats": [
                 {"number": "750+", "label": "kids every week"},
@@ -443,57 +446,49 @@ class Command(BaseCommand):
                 {"number": "0-21", "label": "ages we serve"},
             ]}),
             block("cards", {"heading": heading("Inside our clinic", "Built for kids"), "cards": [
-                {"icon": "run", "color": "leaf", "title": "Two therapy gyms", "text": "Big, bright spaces with parent viewing windows.", "link": link()},
-                {"icon": "sparkle", "color": "grape", "title": "Two sensory gyms", "text": "Swings, crash pads and calm corners for regulation.", "link": link()},
-                {"icon": "heart", "color": "coral", "title": "Feeding therapy rooms", "text": "Two dedicated rooms for feeding and mealtime skills.", "link": link()},
-                {"icon": "home", "color": "sky", "title": "Comfortable waiting areas", "text": "Two waiting rooms, free Wi-Fi and a work bar for parents.", "link": link()},
+                {"icon": "run", "color": "leaf", "title": "Two therapy gyms", "text": "Big, bright spaces with parent viewing windows."},
+                {"icon": "sparkle", "color": "grape", "title": "Two sensory gyms", "text": "Swings, crash pads and calm corners for regulation."},
+                {"icon": "heart", "color": "coral", "title": "Feeding therapy rooms", "text": "Two dedicated rooms for feeding and mealtime skills."},
+                {"icon": "home", "color": "sky", "title": "Comfortable waiting areas", "text": "Two waiting rooms, free Wi-Fi and a work bar for parents."},
             ]}),
             block("heading", heading("Taking your child beyond their limits", "Our philosophy")),
             block("paragraph", "<p>Our therapists are board-certified professionals with additional pediatric training. They partner with you and your child's doctors to set goals that matter, and they keep you in the loop every step of the way. Our commitment is to help each child reach, and go beyond, their own goals.</p>"),
             block("cta", {"color": "sun", "title": "Want to see the clinic?", "text": "We'd love to show you around. Call or text to schedule a tour.",
                           "button": link("Contact us", contact), "secondary_button": link("Get started", get_started)}),
         )
-        about.save_revision().publish()
 
         # ---------------- Services index ----------------
-        services.body = stream(
+        fill(services,
             block("signs", {
                 "heading": heading("Does this sound like your child?", "Not sure where to start?",
                                    "You know your child best. If a few of these sound familiar, that therapy is a good place to begin. "
                                    "Many kids benefit from more than one, and we'll help you sort it out."),
                 "anchor": "does-this-sound-like-your-child",
                 "cards": [
-                    {"type": "item", "id": str(uuid.uuid4()), "value": {
-                        "title": "Everyday tasks and senses", "icon": "hand", "color": "coral",
+                    {"title": "Everyday tasks and senses", "icon": "hand", "color": "coral",
                         "signs": "Struggles with buttons, zippers, scissors or a pencil\nIs upset by noise, clothing tags, haircuts or messy hands\nHas a hard time calming down after big feelings\nAvoids or seeks out lots of swinging, spinning or crashing",
-                        "link": link("Occupational therapy", service_pages["OT"])}},
-                    {"type": "item", "id": str(uuid.uuid4()), "value": {
-                        "title": "Talking and understanding", "icon": "speech", "color": "grape",
+                        "link": link("Occupational therapy", service_pages["OT"])},
+                    {"title": "Talking and understanding", "icon": "speech", "color": "grape",
                         "signs": "Says fewer words than other kids the same age\nIs hard for others to understand\nGets frustrated trying to tell you what they want\nStutters, or has a hoarse voice that doesn't go away",
-                        "link": link("Speech-language therapy", service_pages["Speech"])}},
-                    {"type": "item", "id": str(uuid.uuid4()), "value": {
-                        "title": "Moving and playing", "icon": "run", "color": "leaf",
+                        "link": link("Speech-language therapy", service_pages["Speech"])},
+                    {"title": "Moving and playing", "icon": "run", "color": "leaf",
                         "signs": "Sat up, crawled or walked later than expected\nTrips or falls more than other kids\nWalks on tiptoes much of the time\nTires quickly, or finds stairs, jumping or catching hard",
-                        "link": link("Physical therapy", service_pages["PT"])}},
-                    {"type": "item", "id": str(uuid.uuid4()), "value": {
-                        "title": "Eating and mealtimes", "icon": "heart", "color": "sun",
+                        "link": link("Physical therapy", service_pages["PT"])},
+                    {"title": "Eating and mealtimes", "icon": "heart", "color": "sun",
                         "signs": "Eats only a handful of foods\nGags, coughs or chokes often while eating\nHas trouble moving from purees to solid foods\nMealtimes are a daily struggle",
-                        "link": link("Feeding therapy (OT and speech)", service_pages["OT"])}},
-                    {"type": "item", "id": str(uuid.uuid4()), "value": {
-                        "title": "Hearing and listening", "icon": "ear", "color": "sky",
+                        "link": link("Feeding therapy (OT and speech)", service_pages["OT"])},
+                    {"title": "Hearing and listening", "icon": "ear", "color": "sky",
                         "signs": "Doesn't respond to their name or to sounds\nTurns the TV up loud or often says \"what?\"\nNeeds a recheck after a newborn hearing screening\nHas a lot of ear infections",
-                        "link": link("Audiology", service_pages["Audiology"])}},
-                    {"type": "item", "id": str(uuid.uuid4()), "value": {
-                        "title": "Autism, or just not sure", "icon": "puzzle", "color": "teal",
+                        "link": link("Audiology", service_pages["Audiology"])},
+                    {"title": "Autism, or just not sure", "icon": "puzzle", "color": "teal",
                         "signs": "Your child was recently diagnosed with autism\nPlays alone, or the same way over and over\nRarely points, waves or looks at you to share something\nSomething feels different, and you'd like a second opinion",
-                        "link": link("Call or text us to talk it through", contact)}},
+                        "link": link("Call or text us to talk it through", contact)},
                 ],
             }),
             block("cta", {"color": "teal", "title": "Not sure where to start?",
                           "text": "Many kids benefit from more than one therapy. Call or text and we'll help you figure out the right first step.",
                           "button": link("Get started", get_started), "secondary_button": link("Contact us", contact)}),
         )
-        services.save_revision().publish()
 
         # ---------------- Get started ----------------
         # Secure online forms the clinic already uses (LuxSci, linked from beyondlimitstherapy.org/admission-forms/).
@@ -514,7 +509,7 @@ class Command(BaseCommand):
             return {"title": title, "online_url": url, "document": None, "note": note}
 
         new_family_forms = [form("Payment Consent Form")]
-        get_started.body = stream(
+        fill(get_started,
             block("form_finder", {
                 "heading": heading("Find the right forms", "Step one", "Answer one or two quick questions and we'll show you exactly what to fill out."),
                 "question": "What brings you here today?",
@@ -524,56 +519,51 @@ class Command(BaseCommand):
                         "label": "My child is new to Beyond Limits", "description": "Starting therapy or a hearing test", "icon": "family",
                         "follow_up_question": "Which service is your child starting with?",
                         "options": [
-                            {"label": "Speech-language therapy", "forms": [form("General Admissions Form")], "note": ""},
+                            {"label": "Speech-language therapy", "forms": [form("General Admissions Form")]},
                             {"label": "Occupational therapy", "forms": [form("General Admissions Form")], "note": "<p>If the main concern is using an arm or hand, use the General Admission with Upper Extremity Intake Form instead.</p>"},
-                            {"label": "Physical therapy", "forms": [form("General Admissions Form")], "note": ""},
-                            {"label": "Feeding therapy", "forms": [form("General Admissions Form"), form("ST/OT Feeding Intake Form")], "note": ""},
-                            {"label": "Hearing test, baby under 13 months", "forms": [form("Audiology Admission", "Newborn to 12 months")], "note": ""},
-                            {"label": "Hearing test, 13 months to school age", "forms": [form("Audiology Admission", "13 months to school age")], "note": ""},
+                            {"label": "Physical therapy", "forms": [form("General Admissions Form")]},
+                            {"label": "Feeding therapy", "forms": [form("General Admissions Form"), form("ST/OT Feeding Intake Form")]},
+                            {"label": "Hearing test, baby under 13 months", "forms": [form("Audiology Admission", "Newborn to 12 months")]},
+                            {"label": "Hearing test, 13 months to school age", "forms": [form("Audiology Admission", "13 months to school age")]},
                             {"label": "Not sure yet", "forms": [], "note": "<p>No problem. Call or text 770-917-5737 and our new patient advocate will help you figure out where to start.</p>"},
                         ],
                         "forms": new_family_forms + [form("Telehealth Consent Form", "Only if your child will have telehealth sessions")],
-                        "note": "", "button": link(),
                     },
                     {
                         "label": "My child already comes here", "description": "Updating info or adding a service", "icon": "heart",
                         "follow_up_question": "What do you need to do?",
                         "options": [
-                            {"label": "Update our address, insurance or contact info", "forms": [form("Patient Update Form")], "note": ""},
-                            {"label": "Start telehealth sessions", "forms": [form("Telehealth Consent Form")], "note": ""},
+                            {"label": "Update our address, insurance or contact info", "forms": [form("Patient Update Form")]},
+                            {"label": "Start telehealth sessions", "forms": [form("Telehealth Consent Form")]},
                             {"label": "Add another therapy", "forms": [], "note": "<p>Let your child's therapist or our front desk know. We'll check whether new paperwork is needed.</p>"},
                         ],
-                        "forms": [], "note": "", "button": link(),
+                        "forms": [],
                     },
                     {
                         "label": "I need medical records", "description": "For you, a school or another provider", "icon": "clipboard",
-                        "follow_up_question": "", "options": [],
-                        "forms": [{"title": "Medical Records Request and Disclosure", "online_url": "", "document": None, "note": "Printable PDF. Upload it under Documents to enable the download."}],
-                        "note": "", "button": link(),
+                        "options": [], "forms": [{"title": "Medical Records Request and Disclosure", "note": "Printable PDF. Upload it under Documents to enable the download."}],
                     },
                     {
                         "label": "I'm a veteran with a VES appointment", "description": "Hearing evaluations for VES", "icon": "flag",
-                        "follow_up_question": "", "options": [], "forms": [],
+                        "options": [], "forms": [],
                         "note": "<p>You don't need any of our patient forms. Bring your photo ID and your VES appointment details.</p>",
                         "button": link("Veterans hearing evaluations", veterans),
                     },
                     {
                         "label": "I'm a doctor or school referring a child", "description": "Sending a referral or prescription", "icon": "users",
-                        "follow_up_question": "", "options": [], "forms": [],
+                        "options": [], "forms": [],
                         "note": "<p>Fax the referral or prescription to 770-917-5740, or call 770-917-5737. We'll contact the family to get them scheduled.</p>",
                         "button": link("Contact our office", contact, anchor="visit-or-call"),
                     },
                 ],
             }),
             block("steps", {"heading": heading("What happens next", "From first call to first session"), "steps": [
-                {"title": "Call or text us", "text": "Share your insurance, your child's doctor and any evaluation from the last 6 months.", "link": link()},
-                {"title": "We check your benefits", "text": "You'll know your costs and any authorization needs before the first visit.", "link": link()},
-                {"title": "Evaluation", "text": "Your child's therapist meets you both and writes a plan of care.", "link": link()},
-                {"title": "Therapy begins", "text": "Once your doctor signs the plan and insurance approves (usually about 2 weeks), we call to schedule.", "link": link()},
+                {"title": "Call or text us", "text": "Share your insurance, your child's doctor and any evaluation from the last 6 months."},
+                {"title": "We check your benefits", "text": "You'll know your costs and any authorization needs before the first visit."},
+                {"title": "Evaluation", "text": "Your child's therapist meets you both and writes a plan of care."},
+                {"title": "Therapy begins", "text": "Once your doctor signs the plan and insurance approves (usually about 2 weeks), we call to schedule."},
             ]}),
-            block("checklist", {"title": "Insurance we're in network with", "color": "sky", "items": [
-                "Amerigroup", "CareSource", "Peach State", "BlueCross", "Ambetter", "Tricare", "Wellcare (Audiology only)",
-            ]}),
+            block("checklist", {"title": "Insurance we're in network with", "color": "sky", "items": INSURERS}),
             block("callout", {"color": "sun", "icon": "shield", "title": "Plan not listed?",
                               "text": "<p>We can still help. Call us and we'll check your out-of-network benefits.</p>",
                               "button": link("Contact us", contact)}),
@@ -584,13 +574,10 @@ class Command(BaseCommand):
                 {"question": "Can I watch my child's session?", "answer": "<p>Our therapy gyms have parent viewing windows, and therapists check in with you at the end of each session.</p>"},
             ]}),
         )
-        get_started.save_revision().publish()
 
         # ---------------- Insurance and first visit ----------------
-        insurance.body = stream(
-            block("checklist", {"title": "Insurance we're in network with", "color": "sky", "items": [
-                "Amerigroup", "CareSource", "Peach State", "BlueCross", "Ambetter", "Tricare", "Wellcare (Audiology only)",
-            ]}),
+        fill(insurance,
+            block("checklist", {"title": "Insurance we're in network with", "color": "sky", "items": INSURERS}),
             block("paragraph", "<p>Every plan above is in network for audiology. Wellcare covers audiology only, not occupational, physical or speech therapy. "
                                "If your plan isn't listed, we're out of network with it, but we're happy to check your out-of-network benefits for you.</p>"),
             block("heading", heading("Before your first visit", "No surprises")),
@@ -604,10 +591,10 @@ class Command(BaseCommand):
                 "Your child's IEP, if they get services at school",
             ]}),
             block("steps", {"heading": heading("From first call to first session", "How it works"), "steps": [
-                {"title": "Call or text us", "text": "We'll gather your insurance and your child's doctor's information.", "link": link()},
-                {"title": "Evaluation", "text": "Your child's therapist evaluates your child and talks with you about what they found.", "link": link()},
-                {"title": "Plan of care", "text": "The therapist writes a plan of care and sends it to your pediatrician to sign. If your plan needs authorization, we request it next.", "link": link()},
-                {"title": "Therapy begins", "text": "The whole process usually takes about two weeks. We'll call you to schedule as soon as it's done.", "link": link()},
+                {"title": "Call or text us", "text": "We'll gather your insurance and your child's doctor's information."},
+                {"title": "Evaluation", "text": "Your child's therapist evaluates your child and talks with you about what they found."},
+                {"title": "Plan of care", "text": "The therapist writes a plan of care and sends it to your pediatrician to sign. If your plan needs authorization, we request it next."},
+                {"title": "Therapy begins", "text": "The whole process usually takes about two weeks. We'll call you to schedule as soon as it's done."},
             ]}),
             block("callout", {"color": "sky", "icon": "camera", "title": "Help your child know what to expect",
                               "text": "<p>Look through our first visit photo story together before you come. It shows the building, the front desk, the waiting room and the gym, one step at a time.</p>",
@@ -616,7 +603,6 @@ class Command(BaseCommand):
                           "text": "Call or text 770-917-5737 and we'll walk you through it.",
                           "button": link("Contact us", contact), "secondary_button": link("Get started", get_started)}),
         )
-        insurance.save_revision().publish()
 
         # ---------------- First visit photo story ----------------
         story_steps = [
@@ -630,12 +616,12 @@ class Command(BaseCommand):
             ("visit-08-gym.jpg", "run", "We play and work in the gym. There are swings, mats and toys.", "A therapy gym with swings and mats"),
             ("visit-09-goodbye.jpg", "heart", "When we are done, I see my grown-up again. Then we go home. I did a great job!", "The front door from inside, on the way out"),
         ]
-        first_visit.body = stream(
+        fill(first_visit,
             block("visit_story", {
                 "heading": "Your first visit, one step at a time",
                 "parent_note": "Many children feel calmer when they know what will happen. Look through these pictures with your child a few times before the first visit and talk about each one. You can print them to keep at home or in the car.",
                 "steps": [
-                    {"type": "item", "value": {"photo": image_id(f, f"First visit: {alt} (starter photo)"), "icon": icon, "text": text, "alt": alt}, "id": str(uuid.uuid4())}
+                    {"photo": image_id(f, f"First visit: {alt} (starter photo)"), "icon": icon, "text": text, "alt": alt}
                     for f, icon, text, alt in story_steps
                 ],
             }),
@@ -643,18 +629,17 @@ class Command(BaseCommand):
                               "text": "<p>What to bring, how we check your benefits, and how long it takes to get started.</p>",
                               "button": link("Insurance and your first visit", insurance)}),
         )
-        first_visit.save_revision().publish()
 
         # ---------------- Resources ----------------
-        resources.body = stream(
+        fill(resources,
             block("paragraph", "<p>These organizations, materials and support programs help families of children with hearing loss and other developmental needs. Ask your child's therapist if you'd like recommendations.</p>"),
             block("links", {"heading": "Metro Atlanta", "links": [
-                {"title": "Atlanta Area School for the Deaf", "url": "", "description": ""},
+                {"title": "Atlanta Area School for the Deaf"},
                 {"title": "Atlanta Speech School", "url": "https://www.atlantaspeechschool.org/", "description": ""},
-                {"title": "Auditory-Verbal Center of Atlanta", "url": "", "description": ""},
-                {"title": "Babies Can't Wait", "url": "", "description": "Georgia's early intervention program for birth to 3"},
-                {"title": "GA Hands & Voices", "url": "", "description": "Parent-to-parent support"},
-                {"title": "GA PINES", "url": "", "description": ""},
+                {"title": "Auditory-Verbal Center of Atlanta"},
+                {"title": "Babies Can't Wait", "description": "Georgia's early intervention program for birth to 3"},
+                {"title": "GA Hands & Voices", "description": "Parent-to-parent support"},
+                {"title": "GA PINES"},
             ]}),
             block("links", {"heading": "National organizations", "links": [
                 {"title": "American Academy of Audiology", "url": "https://www.audiology.org/", "description": ""},
@@ -668,28 +653,25 @@ class Command(BaseCommand):
                 {"title": "Georgia Council on Developmental Disabilities", "url": "https://gcdd.org/", "description": "Matching grants so family members can attend educational programs. Georgia residents, one grant per year."},
             ]}),
         )
-        resources.save_revision().publish()
 
         # ---------------- Careers ----------------
-        careers.body = stream(
+        fill(careers,
             block("split", {
                 "eyebrow": "Why Beyond Limits", "heading": "A place to grow your career, not just fill a caseload",
                 "text": "<p>We're a team of audiologists, occupational therapists, physical therapists and speech-language pathologists who learn from each other every day. New grads and clinical fellows get real mentorship, and experienced clinicians get the space and support to do their best work.</p>"
                         "<p>And you'll see the difference you make. Over 750 kids come through our doors every week.</p>",
-                "image": None, "illustration": "team", "image_side": "right", "button": link("See open roles", None, "#openings"),
+                "illustration": "team", "image_side": "right", "button": link("See open roles", None, "#openings"),
             }),
             block("cards", {"heading": heading("What it's like here", "Life on the team"), "cards": [
-                {"icon": "users", "color": "grape", "title": "Every discipline in one building", "text": "Walk down the hall to co-treat or ask a question.", "link": link()},
-                {"icon": "grad", "color": "sky", "title": "Mentorship that's real", "text": "Support for new grads and CFs from experienced pediatric clinicians.", "link": link()},
-                {"icon": "sparkle", "color": "coral", "title": "Space to do great therapy", "text": "Two therapy gyms, two sensory gyms and dedicated feeding rooms.", "link": link()},
-                {"icon": "heart", "color": "leaf", "title": "Values we live by", "text": "Passion, discipline, transparency, accountability, teamwork and excellence.", "link": link()},
+                {"icon": "users", "color": "grape", "title": "Every discipline in one building", "text": "Walk down the hall to co-treat or ask a question."},
+                {"icon": "grad", "color": "sky", "title": "Mentorship that's real", "text": "Support for new grads and CFs from experienced pediatric clinicians."},
+                {"icon": "sparkle", "color": "coral", "title": "Space to do great therapy", "text": "Two therapy gyms, two sensory gyms and dedicated feeding rooms."},
+                {"icon": "heart", "color": "leaf", "title": "Values we live by", "text": "Passion, discipline, transparency, accountability, teamwork and excellence."},
             ]}),
             block("team_teaser", {"heading": heading("Your future teammates", "Say hi"), "count": 8, "button": link("Meet the whole team", team)}),
-            block("callout", {"color": "grape", "icon": "briefcase" if False else "star", "title": "Don't see your role?",
-                              "text": "<p>We're always happy to hear from pediatric therapists. Send your resume and tell us what you love about working with kids.</p>",
-                              "button": link()}),
+            block("callout", {"color": "grape", "icon": "star", "title": "Don't see your role?",
+                              "text": "<p>We're always happy to hear from pediatric therapists. Send your resume and tell us what you love about working with kids.</p>"}),
         )
-        careers.save_revision().publish()
         sample_job = JobPage(
             title="Pediatric Speech-Language Pathologist", slug="speech-language-pathologist", discipline="slp",
             employment_type="Full-time", location="Acworth, GA", hero_color="grape",
@@ -700,7 +682,7 @@ class Command(BaseCommand):
         sample_job.save_revision()  # left as a draft so editors have a template to copy
 
         # ---------------- Veterans ----------------
-        veterans.body = stream(
+        fill(veterans,
             block("checklist", {"title": "Here for a VES appointment?", "color": "navy", "items": [
                 "Bring your photo ID and your VES appointment details",
                 "Plan on about an hour for a full hearing evaluation",
@@ -710,14 +692,12 @@ class Command(BaseCommand):
                                "<p>All of our audiologists are licensed by the State of Georgia and hold additional credentialing through VES to meet the specific needs of those who serve. Several are also credentialed to travel internationally, and recent trips have included Germany, Spain and Japan, where members of our Armed Forces are stationed.</p>"
                                "<p>If VES referred you to us, you'll receive a comprehensive audiological evaluation from a licensed audiologist, with results reported back to VES within 24 to 48 hours. We are honored to give back to those who have given so much.</p>"),
             block("cta", {"color": "sky", "title": "Questions about your appointment?", "text": "Call or text our front office and we'll help.",
-                          "button": link("Contact us", contact), "secondary_button": link()}),
+                          "button": link("Contact us", contact)}),
         )
-        veterans.save_revision().publish()
 
-        privacy.body = stream(
+        fill(privacy,
             block("callout", {"color": "sky", "icon": "shield", "title": "Placeholder",
-                              "text": "<p>Paste the practice's Notice of Privacy Practices here before launch.</p>", "button": link()}),
+                              "text": "<p>Paste the practice's Notice of Privacy Practices here before launch.</p>"}),
         )
-        privacy.save_revision().publish()
 
         self.stdout.write(self.style.SUCCESS(f"Seeded {Page.objects.count()} pages and {TeamMember.objects.count()} team members."))

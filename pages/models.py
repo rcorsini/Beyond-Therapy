@@ -62,7 +62,7 @@ class ServicePage(HeroMixin, Page):
 
     The structured fields feed this page and every card that lists services
     (Services page, home page overview, sibling links). The multi-line text
-    fields hold one item per line; the *_list methods split them for templates.
+    fields hold one item per line; templates split them with |split_lines.
     """
 
     short_name = models.CharField(max_length=40, blank=True, help_text="e.g. 'OT'")
@@ -95,12 +95,6 @@ class ServicePage(HeroMixin, Page):
     ]
     parent_page_types = ["pages.ServiceIndexPage"]
     search_fields = Page.search_fields + [index.SearchField("summary"), index.SearchField("helps_with"), index.SearchField("body")]
-
-    def helps_with_list(self):
-        return [line.strip() for line in self.helps_with.splitlines() if line.strip()]
-
-    def what_we_offer_list(self):
-        return [line.strip() for line in self.what_we_offer.splitlines() if line.strip()]
 
     def siblings(self):
         return ServicePage.objects.sibling_of(self, inclusive=False).live().public()
@@ -170,12 +164,6 @@ class TeamMember(index.Indexed, models.Model):
                 slug, n = f"{base}-{n}", n + 1
             self.slug = slug
         super().save(*args, **kwargs)
-
-    def licensure_list(self):
-        return [line.strip() for line in self.licensure.splitlines() if line.strip()]
-
-    def education_list(self):
-        return [line.strip() for line in self.education.splitlines() if line.strip()]
 
     @property
     def url(self):

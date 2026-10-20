@@ -71,14 +71,6 @@ def main_menu(context):
     return site.root_page.get_children().live().public().in_menu().specific()
 
 
-@register.simple_tag(takes_context=True)
-def site_root(context):
-    """The current site's home page."""
-    request = context.get("request")
-    site = Site.find_for_request(request) if request else None
-    return site.root_page if site else None
-
-
 @register.filter
 def is_active(page, current):
     """True when `current` is `page` or below it, to highlight the menu item."""
