@@ -2,7 +2,7 @@
 
 A tour of the code for a developer picking the project up. For setup, deployment and editor notes, start with the [README](../README.md).
 
-The stack is deliberately small: Django 5.2, Wagtail 7.4, SQLite, WhiteNoise for static files, django-axes for login lockout, and gunicorn. There's no front-end build step: one hand-written CSS file and one plain JavaScript file.
+The stack is deliberately small: Django 5.2+, Wagtail 7.4, Postgres on Render (SQLite locally), WhiteNoise for static files, django-axes for login lockout, and gunicorn. There's no front-end build step: one hand-written CSS file and one plain JavaScript file.
 
 ## Layout
 
@@ -31,7 +31,7 @@ pages/                   every other page type, plus TeamMember (providers)
   wagtail_hooks.py         puts Providers in the admin menu
 search/                  site search view (Wagtail's default, unchanged)
 docs/                    this file and the open questions for the clinic
-render.yaml              Render Blueprint for the free preview
+render.yaml              Render Blueprint for the preview (web service, Postgres, media disk)
 ```
 
 Apps are listed before Wagtail's in `INSTALLED_APPS`, so templates here override Wagtail's.
@@ -73,7 +73,7 @@ All in `pages/models.py` except `HomePage`.
 | `StandardPage` | Header + `BodyStreamBlock`. Used for most content pages. |
 | `ServiceIndexPage` | Lists its `ServicePage` children (`services` in context). |
 | `ServicePage` | One therapy. Structured fields (summary, icon, age range, "helps with", "what we offer", first visit, photo) drive both the page and the service cards elsewhere. Multi-line text fields are "one item per line". |
-| `TeamPage` | A `RoutablePageMixin` page. `/our-providers/` lists all providers grouped by discipline (with a JS filter); `/our-providers/<slug>/` renders a `TeamMember` profile with `pages/team_member.html`. Unknown slugs 404. |
+| `TeamPage` | A `RoutablePageMixin` page. `/our-providers/` lists all providers grouped by discipline (with a JS filter); `/our-providers/<slug>/` renders a `TeamMember` profile with `pages/team_member.html`. Both use `includes/team_card.html` for the provider cards. Unknown slugs 404. |
 | `CareersPage` / `JobPage` | Careers lists its open, live `JobPage` children. |
 | `ContactPage` | A Wagtail `AbstractEmailForm` with optional LuxSci hand-off. See below. |
 
@@ -98,7 +98,7 @@ Every editable section is a StreamField block with its own template in `core/tem
 - `VisitStoryBlock` is the printable first-visit walk-through, written for the child; each step shows its icon until a real photo is added.
 - Color and icon choices are shared lists (`COLOR_CHOICES`, `ICON_CHOICES`). Icons are original SVG line drawings in `core/templatetags/site_tags.py` (`{% icon "ear" %}`); add new ones there and to `ICON_CHOICES`.
 
-Changing a block's fields means a new migration for every model using that StreamBlock (`home` and `pages`). That's why those apps have many `alter_..._body` migrations.
+Changing a block's fields means a new migration for every model using that StreamBlock (`home` and `pages`), and each one repeats the whole block definition. The old chains were squashed into one migration per app (`0001_squashed_*`); its `replaces` list lets databases that applied the old chain carry on. If they grow long again, squash them the same way once every database has migrated.
 
 ## Templates and front end
 
@@ -129,9 +129,9 @@ The separate "secure message" card (`ClinicSettings.secure_contact_url`) is hidd
 
 ## Data and media
 
-- **Database:** SQLite (`SQLITE_PATH`). Fine locally; production needs a persistent database (Postgres is the usual choice, which also needs `psycopg` added to `requirements.txt` and `DATABASES` switched, e.g. via `dj-database-url`).
+- **Database:** Postgres when `DATABASE_URL` is set (Render provides it from `render.yaml`), otherwise SQLite (`SQLITE_PATH`).
 - **Static files:** collected to `/static/` and served by WhiteNoise with hashed, compressed names in production.
-- **Media (uploads):** written to `/media/`. With debug off, `SERVE_MEDIA=1` makes Django serve them (`beyondlimits/urls.py`). That's fine for the preview; at launch, use object storage.
+- **Media (uploads):** written to `MEDIA_ROOT`, which on Render is the persistent disk. With debug off, `SERVE_MEDIA=1` makes Django serve them (`beyondlimits/urls.py`). Object storage (S3, Cloudinary) is only needed if traffic or storage outgrows the disk.
 - **Search:** Wagtail's database search backend over live pages (`search/views.py`).
 
 ## Conventions
@@ -139,5 +139,5 @@ The separate "secure message" card (`ClinicSettings.secure_contact_url`) is hidd
 - Keep code original: no files, CSS, JS or images from the Little Ones template or the developer's build (their *text* may be reused).
 - Comments explain *why*, in plain language, especially accessibility and HIPAA decisions.
 - Field `help_text` is written for clinic staff, not developers. Changing it creates a migration.
-- New content belongs in `seed_site.py` too, while the preview depends on reseeding.
+- `seed_site` only fills an empty database, so new content for the existing preview goes in through the admin. Keep `seed_site.py` in step only for fresh installs.
 - Run `python manage.py test` and `makemigrations --check`, and check WAVE/axe on anything visual, before pushing.

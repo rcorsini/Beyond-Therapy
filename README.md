@@ -20,7 +20,7 @@ Accessibility is a requirement, not a nice-to-have: see [Accessibility](#accessi
 
 ## Quick start (local)
 
-Needs Python 3.12 (the version Render uses; 3.11+ should work). SQLite is the database, so nothing else to install.
+Needs Python 3.12 (the version Render uses; 3.11+ should work). Locally SQLite is the database, so nothing else to install; set `DATABASE_URL` to use Postgres instead, as Render does.
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -45,7 +45,7 @@ The tests (`core/tests/test_site.py`) seed the site and then check that every pa
 
 ## Starter content: `seed_site`
 
-`core/management/commands/seed_site.py` builds the whole site from code: the page tree, every page's blocks, the clinic settings, all providers and the starter photos. It's what makes the site usable straight after `migrate`, and it's what rebuilds the Render preview on every start.
+`core/management/commands/seed_site.py` builds the whole site from code: the page tree, every page's blocks, the clinic settings, all providers and the starter photos. It's what makes the site usable straight after `migrate`, and it filled the Render preview's database the first time it started.
 
 ```bash
 python manage.py seed_site          # does nothing if a HomePage already exists
@@ -66,11 +66,11 @@ Where the content comes from:
 
 ## Preview on Render
 
-`render.yaml` is a Render Blueprint for a free preview that redeploys on every push to `feature/wagtail-site`. To set one up: in Render choose **New > Blueprint**, pick this repository and branch, and enter an admin username, email and password when asked.
+`render.yaml` is a Render Blueprint for a preview that redeploys on every push to `feature/wagtail-site`: a $7 web service, a $6 Render Postgres database and a 1 GB persistent disk for uploads ($0.25), about $13.25 a month. To set one up: in Render choose **New > Blueprint**, pick this repository and branch, and enter an admin username, email and password when asked. Change plans in `render.yaml`, not the Render dashboard, or the Blueprint can change them back.
 
 On each start the service runs `migrate`, then `seed_site`, then `createsuperuser` (from the `DJANGO_SUPERUSER_*` variables), then gunicorn.
 
-**The preview forgets everything.** The free plan has no persistent disk, so SQLite and uploaded media are wiped on every deploy *and* every wake from sleep, and the site is rebuilt from `seed_site`. Admin edits and uploads are lost. That's why starter photos live in the repo rather than being uploaded. For a copy that keeps edits, add Render Postgres (and a file store for media), or run it locally.
+Pages live in Postgres and uploads on the disk (`MEDIA_ROOT=/var/data/media`), so edits made in the admin survive deploys. `seed_site` only fills an empty database, so later changes to the seed data don't reach the existing preview; add that content in the admin instead. The admin login from the environment is created once; after that, change the password in the admin. Because of the disk, each deploy has a short gap while the old copy stops.
 
 The preview sends `noindex` to search engines (`SITE_NOINDEX=1`).
 
@@ -85,10 +85,12 @@ Production settings (`beyondlimits.settings.production`) read:
 | `DJANGO_ALLOWED_HOSTS` | yes, off Render | Comma-separated hostnames. On Render, `RENDER_EXTERNAL_HOSTNAME` is added automatically. CSRF trusted origins are derived from this list. |
 | `WAGTAILADMIN_BASE_URL` | no | Full site URL for links in admin emails. Defaults to the Render hostname. |
 | `SITE_NOINDEX` | no | `1` adds a `noindex` robots tag to every page. Set on previews; never on the live site. |
-| `SQLITE_PATH` | no | Where the SQLite file lives. Defaults to `db.sqlite3` in the repo root. |
-| `SERVE_MEDIA` | no | `1` (default) lets Django serve `/media/` itself when debug is off. Set `0` once media moves to S3 or similar. |
+| `DATABASE_URL` | Render sets it | Postgres connection string. Without it, SQLite is used. |
+| `SQLITE_PATH` | no | Where the SQLite file lives when there's no `DATABASE_URL`. Defaults to `db.sqlite3` in the repo root. |
+| `MEDIA_ROOT` | Render sets it | Folder for uploaded images and documents. On Render it's the persistent disk. Defaults to `media/` in the repo root. |
+| `SERVE_MEDIA` | no | `1` (default) lets Django serve `/media/` itself when debug is off. Set `0` if media ever moves to S3 or similar. |
 | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL` | no | SMTP for the fallback Wagtail contact form. Without `EMAIL_HOST`, mail is written to the log instead. Not used while the LuxSci form is on. |
-| `DJANGO_SUPERUSER_USERNAME`, `_EMAIL`, `_PASSWORD` | Render only | The admin login the preview creates on each start. |
+| `DJANGO_SUPERUSER_USERNAME`, `_EMAIL`, `_PASSWORD` | Render only | The first admin login, created when the database is new. |
 
 There's also a `Dockerfile` (the Wagtail project default, lightly used) if you'd rather run it in a container.
 
@@ -131,8 +133,6 @@ The eight admission forms on Get Started are separate LuxSci forms the clinic al
 Launch blockers:
 
 - [ ] **HIPAA Privacy Policy page** is a placeholder. The clinic must supply the real notice.
-- [ ] **A persistent database** (Render Postgres or another host). The free preview loses every edit.
-- [ ] **Media storage** (S3, Cloudinary or similar), then `SERVE_MEDIA=0`.
 - [ ] **Remove `SITE_NOINDEX`** on the live site, and set `DJANGO_ALLOWED_HOSTS` / `WAGTAILADMIN_BASE_URL` for the real domain.
 - [ ] **Sample job posting**: `seed_site` creates an example Speech-Language Pathologist posting that is meant to be a draft but is published (live) on the Careers page. Unpublish or replace it.
 - [ ] **Login lockout address**: if the live host isn't behind Cloudflare, update `core/security.py` (see its docstring).
