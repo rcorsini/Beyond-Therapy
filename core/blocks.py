@@ -275,9 +275,10 @@ class FormFinderPathBlock(blocks.StructBlock):
     description = blocks.CharBlock(required=False)
     icon = blocks.ChoiceBlock(choices=ICON_CHOICES, default="family")
     follow_up_question = blocks.CharBlock(required=False, help_text="Asked when this path has options, e.g. 'Which service is your child starting?'")
+    pick_several = blocks.BooleanBlock(required=False, help_text="Families can choose more than one option; their forms are combined into one list.")
     options = blocks.ListBlock(FormFinderOptionBlock(), required=False, help_text="Leave empty to go straight to the forms below.")
-    forms = blocks.ListBlock(FormItemBlock(), required=False, help_text="Forms for everyone on this path (added to any option's forms).")
-    note = blocks.RichTextBlock(features=["bold", "italic", "link"], required=False)
+    forms = blocks.ListBlock(FormItemBlock(), required=False, help_text="Forms for everyone on this path, listed first (before any option's forms).")
+    note = blocks.RichTextBlock(features=["bold", "italic", "link"], required=False, help_text="Shown above the forms, e.g. what to have ready.")
     button = LinkBlock(required=False)
 
 
@@ -291,6 +292,27 @@ class FormFinderBlock(blocks.StructBlock):
         features=["bold", "italic", "link"], required=False,
         help_text="How to send the forms back. Shown with every result.",
     )
+
+    def get_context(self, value, parent_context=None):
+        """Gives each path one numbered list: its own forms, then each option's, once each.
+
+        An item's `options` holds the numbers of the options it belongs to ("" = always
+        shown) and `labels` their names, for the no-JavaScript list.
+        """
+        context = super().get_context(value, parent_context)
+        context["paths"] = []
+        for path in value["paths"]:
+            items = {}  # one entry per distinct form (same title, link and note)
+            for n, forms in [(None, path["forms"])] + list(enumerate((o["forms"] for o in path["options"]), 1)):
+                for f in forms:
+                    item = items.setdefault((f["title"], f["online_url"], f["note"]), {"form": f, "options": [n] if n else []})
+                    if item["options"] and n not in item["options"]:
+                        item["options"].append(n)
+            for item in items.values():
+                item["labels"] = ", ".join(path["options"][n - 1]["label"] for n in item["options"])
+                item["options"] = " ".join(map(str, item["options"]))
+            context["paths"].append({"value": path, "items": list(items.values())})
+        return context
 
     class Meta:
         icon = "help"

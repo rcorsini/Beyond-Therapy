@@ -187,6 +187,117 @@ SERVICES = [
 ]
 
 
+# ---------------- Get started ----------------
+# Which form goes with which situation comes from the clinic's answers in October 2026
+# (see docs/client-questions.md). The data migration pages/0011 reuses this to update
+# an existing site, so keep it free of anything that only exists while seeding.
+GET_STARTED_INTRO = "Find the forms your child needs in a question or two, then see what happens next."
+
+
+def get_started_blocks(insurance, contact, veterans):
+    """The Get Started page body: the form finder, next steps, an insurance pointer and FAQ."""
+    lux = "https://secureform.luxsci.com/forms/18016/"
+    new = "https://beyond-limits.secure-form.com/"  # the clinic's newer forms (added October 2026)
+
+    def form(title, url="", note=""):
+        return {"title": title, "online_url": url, "document": None, "note": note}
+
+    general = form("General Admissions Form", lux + "12134/J1HD/form.html", "Everyone starting therapy fills this out first")
+    therapies = [
+        ("Speech therapy", form("Speech Therapy Patient Form", new + "st-patient/")),
+        ("Occupational therapy", form("Occupational Therapy Patient Form", new + "ot-patient/")),
+        ("Physical therapy", form("Physical Therapy Patient Form", new + "pt-patient/")),
+        ("Feeding or eating concerns", form("Feeding Intake Form", new + "feeding-n/", "Needed before we can schedule a feeding evaluation")),
+    ]
+    feeding_note = ("<p>Feeding concerns like texture or food aversions are usually seen by occupational therapy, and chewing or "
+                    "swallowing by speech therapy. If you're not sure which, we'll help you decide.</p>")
+
+    def therapy_options():
+        return [{"label": label, "forms": [f], "note": feeding_note if label.startswith("Feeding") else ""} for label, f in therapies]
+
+    return [
+        block("form_finder", {
+            "heading": heading("Find your forms", "A question or two",
+                               "Tell us a little about your child and we'll show you exactly which forms to fill out, in order."),
+            "question": "What brings you here today?",
+            "return_note": "<p><b>Online forms</b> go straight to our office through a secure, HIPAA-compliant connection. For a PDF, email it to info@blptc.org, fax it to 770-917-5740, or bring it to your first visit.</p>",
+            "paths": [
+                {
+                    "label": "My child is new to therapy here", "description": "Speech, occupational, physical or feeding therapy", "icon": "family",
+                    "follow_up_question": "Which therapy is your child starting?", "pick_several": True,
+                    "note": "<p><b>You'll also need a referral</b> from your child's pediatrician before we can add your child to our waitlist. "
+                            "Give us the doctor's name and we can request it for you.</p>",
+                    "forms": [general],
+                    "options": therapy_options() + [{"label": "Not sure yet", "forms": [], "note":
+                        "<p>Start with the General Admissions Form, then call or text 770-917-5737. Our new patient advocate will help you choose.</p>"}],
+                },
+                {
+                    "label": "My child needs a hearing test", "description": "Audiology, newborn to school age", "icon": "ear",
+                    "follow_up_question": "How old is your child?",
+                    "note": "<p><b>You'll also need a referral</b> from your child's pediatrician before we can schedule the hearing test. "
+                            "Our audiology clinic has its own paperwork, so you don't need any therapy forms.</p>",
+                    "forms": [],
+                    "options": [
+                        {"label": "Newborn to 12 months", "forms": [form("Audiology Admission Form", lux + "22903/xOy1/form.html", "Newborn to 12 months")]},
+                        {"label": "13 months to school age", "forms": [form("Audiology Admission Form", lux + "22904/R68Q/form.html", "13 months to school age")]},
+                    ],
+                },
+                {
+                    "label": "My child already comes here and is adding a therapy", "description": "Starting another service with us", "icon": "heart",
+                    "follow_up_question": "Which therapy is your child adding?", "pick_several": True,
+                    "note": "<p>You don't need to fill out General Admissions again. Let your child's therapist or our front desk know too, "
+                            "so we can check whether a new referral is needed.</p>",
+                    "forms": [], "options": therapy_options(),
+                },
+                {
+                    "label": "Our office asked me to fill out a form", "description": "Yearly update, telehealth, card on file or records", "icon": "clipboard",
+                    "follow_up_question": "Which form did we ask for?",
+                    "note": "<p>We'll always let you know when one of these is needed, so there's no need to fill them out ahead of time.</p>",
+                    "forms": [],
+                    "options": [
+                        {"label": "Yearly patient update", "forms": [form("Patient Update Form", lux + "18856/JHPn/form.html",
+                            "Every current patient, once a year. We send the link near the end of the year.")]},
+                        {"label": "Telehealth consent", "forms": [form("Telehealth Consent Form", lux + "15983/hFgB/form.html",
+                            "When your child's therapist offers telehealth and your insurance requires this form")]},
+                        {"label": "Keeping a card on file", "forms": [form("Payment Consent Form", lux + "18866/Q5Lr/form.html",
+                            "Lets us charge your share of each session to a saved card")]},
+                        {"label": "Sharing records with a school or another provider", "forms": [form("Medical Records Request and Disclosure", "",
+                            "Needed before we can discuss your child's care with, or send records to, anyone other than your child's doctor")]},
+                    ],
+                },
+                {
+                    "label": "I'm a veteran with a VES appointment", "description": "Hearing evaluations for VES", "icon": "flag",
+                    "options": [], "forms": [],
+                    "note": "<p>You don't need any of our patient forms. Bring your photo ID and your VES appointment details.</p>",
+                    "button": link("Veterans hearing evaluations", veterans),
+                },
+                {
+                    "label": "I'm a doctor or school referring a child", "description": "Sending a referral or prescription", "icon": "users",
+                    "options": [], "forms": [],
+                    "note": "<p>Fax the referral or prescription to 770-917-5740, or call 770-917-5737. We'll contact the family to get them scheduled.</p>",
+                    "button": link("Contact our office", contact, anchor="visit-or-call"),
+                },
+            ],
+        }),
+        block("steps", {"heading": heading("What happens next", "From forms to first session"), "steps": [
+            {"title": "Send your forms and referral", "text": "Fill out your forms online, and send your pediatrician's referral or give us the doctor's name."},
+            {"title": "Join our waitlist", "text": "With both in hand, your child joins our waitlist and we check your insurance benefits."},
+            {"title": "Evaluation", "text": "Your child's therapist meets you both and writes a plan of care."},
+            {"title": "Therapy begins", "text": "Once your doctor signs the plan and insurance approves (usually about 2 weeks), we call to schedule."},
+        ]}),
+        block("callout", {"color": "sky", "icon": "shield", "title": "Insurance and what to bring",
+                          "text": "<p>See which plans we're in network with, how we check your benefits before the first visit, and what to have ready.</p>",
+                          "button": link("Insurance and your first visit", insurance)}),
+        block("faq", {"heading": "Common questions", "items": [
+            {"question": "Do I need a referral?", "answer": "<p>Yes. We need a referral from your child's pediatrician before we can add your child to our waitlist or schedule a hearing test. Give us the doctor's name and we'll request it for you, or send us a copy if you already have one.</p>"},
+            {"question": "We already come here. Is there yearly paperwork?", "answer": "<p>Yes, one form: the Patient Update. Near the end of each year we send every current family the link, so your insurance, contact details and consents are up to date for January.</p>"},
+            {"question": "How long until my child's first appointment?", "answer": "<p>After the evaluation, it usually takes about two weeks to get the doctor's signature on the plan of care and any prior authorization from insurance. We'll call you as soon as it's approved.</p>"},
+            {"question": "My child has an IEP. Do you need it?", "answer": "<p>Yes, please. We share it with your child's therapist and some insurers need it for authorization. Send us the updated IEP whenever the school renews it.</p>"},
+            {"question": "Can I watch my child's session?", "answer": "<p>Our therapy gyms have parent viewing windows, and therapists check in with you at the end of each session.</p>"},
+        ]}),
+    ]
+
+
 class Command(BaseCommand):
     help = "Create the starter pages, settings and team for the Beyond Limits site."
 
@@ -246,8 +357,7 @@ class Command(BaseCommand):
             hero_intro="Board-certified therapists with extra pediatric training, and a front office that will know your child by name.",
         ))
         get_started = add(home, StandardPage(
-            title="Get Started", slug="get-started", show_in_menus=True, hero_color="sun",
-            hero_intro="New to Beyond Limits? Here's exactly what happens, from your first call to your child's first session.",
+            title="Get Started", slug="get-started", show_in_menus=True, hero_color="sun", hero_intro=GET_STARTED_INTRO,
         ))
         resources = add(home, StandardPage(
             title="Resources", slug="resources", show_in_menus=True, hero_color="teal",
@@ -491,89 +601,7 @@ class Command(BaseCommand):
         )
 
         # ---------------- Get started ----------------
-        # Secure online forms the clinic already uses (LuxSci, linked from beyondlimitstherapy.org/admission-forms/).
-        lux = "https://secureform.luxsci.com/forms/18016/"
-        online = {
-            "General Admissions Form": lux + "12134/J1HD/form.html",
-            "General Admission with Upper Extremity Intake Form": lux + "23214/J9P3/form.html",
-            "ST/OT Feeding Intake Form": lux + "24532/jCRG/form.html",
-            "Audiology Admission|Newborn to 12 months": lux + "22903/xOy1/form.html",
-            "Audiology Admission|13 months to school age": lux + "22904/R68Q/form.html",
-            "Patient Update Form": lux + "18856/JHPn/form.html",
-            "Telehealth Consent Form": lux + "15983/hFgB/form.html",
-            "Payment Consent Form": lux + "18866/Q5Lr/form.html",
-        }
-
-        def form(title, note=""):
-            url = online.get(f"{title}|{note}") or online.get(title, "")
-            return {"title": title, "online_url": url, "document": None, "note": note}
-
-        new_family_forms = [form("Payment Consent Form")]
-        fill(get_started,
-            block("form_finder", {
-                "heading": heading("Find the right forms", "Step one", "Answer one or two quick questions and we'll show you exactly what to fill out."),
-                "question": "What brings you here today?",
-                "return_note": "<p><b>Online forms</b> go straight to our office through a secure, HIPAA-compliant connection. For a PDF, email it to info@blptc.org, fax it to 770-917-5740, or bring it to your first visit.</p>",
-                "paths": [
-                    {
-                        "label": "My child is new to Beyond Limits", "description": "Starting therapy or a hearing test", "icon": "family",
-                        "follow_up_question": "Which service is your child starting with?",
-                        "options": [
-                            {"label": "Speech-language therapy", "forms": [form("General Admissions Form")]},
-                            {"label": "Occupational therapy", "forms": [form("General Admissions Form")], "note": "<p>If the main concern is using an arm or hand, use the General Admission with Upper Extremity Intake Form instead.</p>"},
-                            {"label": "Physical therapy", "forms": [form("General Admissions Form")]},
-                            {"label": "Feeding therapy", "forms": [form("General Admissions Form"), form("ST/OT Feeding Intake Form")]},
-                            {"label": "Hearing test, baby under 13 months", "forms": [form("Audiology Admission", "Newborn to 12 months")]},
-                            {"label": "Hearing test, 13 months to school age", "forms": [form("Audiology Admission", "13 months to school age")]},
-                            {"label": "Not sure yet", "forms": [], "note": "<p>No problem. Call or text 770-917-5737 and our new patient advocate will help you figure out where to start.</p>"},
-                        ],
-                        "forms": new_family_forms + [form("Telehealth Consent Form", "Only if your child will have telehealth sessions")],
-                    },
-                    {
-                        "label": "My child already comes here", "description": "Updating info or adding a service", "icon": "heart",
-                        "follow_up_question": "What do you need to do?",
-                        "options": [
-                            {"label": "Update our address, insurance or contact info", "forms": [form("Patient Update Form")]},
-                            {"label": "Start telehealth sessions", "forms": [form("Telehealth Consent Form")]},
-                            {"label": "Add another therapy", "forms": [], "note": "<p>Let your child's therapist or our front desk know. We'll check whether new paperwork is needed.</p>"},
-                        ],
-                        "forms": [],
-                    },
-                    {
-                        "label": "I need medical records", "description": "For you, a school or another provider", "icon": "clipboard",
-                        "options": [], "forms": [{"title": "Medical Records Request and Disclosure", "note": "Printable PDF. Upload it under Documents to enable the download."}],
-                    },
-                    {
-                        "label": "I'm a veteran with a VES appointment", "description": "Hearing evaluations for VES", "icon": "flag",
-                        "options": [], "forms": [],
-                        "note": "<p>You don't need any of our patient forms. Bring your photo ID and your VES appointment details.</p>",
-                        "button": link("Veterans hearing evaluations", veterans),
-                    },
-                    {
-                        "label": "I'm a doctor or school referring a child", "description": "Sending a referral or prescription", "icon": "users",
-                        "options": [], "forms": [],
-                        "note": "<p>Fax the referral or prescription to 770-917-5740, or call 770-917-5737. We'll contact the family to get them scheduled.</p>",
-                        "button": link("Contact our office", contact, anchor="visit-or-call"),
-                    },
-                ],
-            }),
-            block("steps", {"heading": heading("What happens next", "From first call to first session"), "steps": [
-                {"title": "Call or text us", "text": "Share your insurance, your child's doctor and any evaluation from the last 6 months."},
-                {"title": "We check your benefits", "text": "You'll know your costs and any authorization needs before the first visit."},
-                {"title": "Evaluation", "text": "Your child's therapist meets you both and writes a plan of care."},
-                {"title": "Therapy begins", "text": "Once your doctor signs the plan and insurance approves (usually about 2 weeks), we call to schedule."},
-            ]}),
-            block("checklist", {"title": "Insurance we're in network with", "color": "sky", "items": INSURERS}),
-            block("callout", {"color": "sun", "icon": "shield", "title": "Plan not listed?",
-                              "text": "<p>We can still help. Call us and we'll check your out-of-network benefits.</p>",
-                              "button": link("Contact us", contact)}),
-            block("faq", {"heading": "Common questions", "items": [
-                {"question": "Do I need a referral?", "answer": "<p>Most insurance plans need a prescription from your child's doctor. Give us the doctor's name and we'll request it for you. If you already have one, send us a copy before scheduling.</p>"},
-                {"question": "How long until my child's first appointment?", "answer": "<p>After the evaluation, it usually takes about two weeks to get the doctor's signature on the plan of care and any prior authorization from insurance. We'll call you as soon as it's approved.</p>"},
-                {"question": "My child has an IEP. Do you need it?", "answer": "<p>Yes, please. We share it with your child's therapist and some insurers need it for authorization. Send us the updated IEP whenever the school renews it.</p>"},
-                {"question": "Can I watch my child's session?", "answer": "<p>Our therapy gyms have parent viewing windows, and therapists check in with you at the end of each session.</p>"},
-            ]}),
-        )
+        fill(get_started, *get_started_blocks(insurance, contact, veterans))
 
         # ---------------- Insurance and first visit ----------------
         fill(insurance,

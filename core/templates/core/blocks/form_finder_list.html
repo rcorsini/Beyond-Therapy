@@ -1,7 +1,0 @@
-{% load site_tags %}
-{% with s=settings.core.ClinicSettings %}
-<ol class="doc-list finder__forms">
-    {% for f in forms %}{% include "core/blocks/form_finder_item.html" %}{% endfor %}
-    {% for f in extra %}{% include "core/blocks/form_finder_item.html" %}{% endfor %}
-</ol>
-{% endwith %}
