@@ -1,59 +1,152 @@
 # Beyond Limits Pediatric Therapy Center website
 
-A Django + Wagtail rebuild of beyondlimitstherapy.org. The design takes the Beyond Limits brand (indigo and lime) and the playful feel of the "Little Ones" template, written as original code. None of the template's files are used.
+A Django + Wagtail rebuild of [beyondlimitstherapy.org](https://beyondlimitstherapy.org/), the site of a pediatric therapy clinic in Acworth, Georgia (audiology, occupational, physical and speech-language therapy, birth to 21).
+
+The look takes the Beyond Limits brand (indigo `#45488f` and lime `#8dc63f`) and the playful feel of the "Little Ones" ThemeForest template, but **all code, CSS, illustrations and icons here are original**. None of the template's files are used, and none should be added: the project has no license to them.
+
+- **Preview:** https://beyond-limits-preview.onrender.com (editor at `/admin/`)
+- **Architecture and code tour:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **Open questions for the clinic:** [`docs/client-questions.md`](docs/client-questions.md)
 
 ## Who the site is for
 
-1. **Families** of kids with developmental, sensory, motor, speech or hearing needs, many on the autism spectrum. Everything leads to "Start here".
-2. **Therapists we want to hire.** They get a Careers page, a careers band on the home page, and a Careers link in the top bar.
-3. **Veterans** with a VES hearing appointment. They're never more than one click away, through the top bar on every page, the mobile menu and the footer, but they aren't the focus.
+In priority order:
 
-## Run it locally
+1. **Families** of kids with developmental, sensory, motor, speech or hearing needs, many on the autism spectrum. Everything leads to "Start here" (the Get Started page).
+2. **Therapists the clinic wants to hire.** They get a Careers page, a careers band and a hiring slide on the home page, and a Careers link in the top bar.
+3. **Veterans** coming for a VES hearing exam. They're never more than one click away (top bar on every page, mobile menu, footer) but they aren't the focus.
+
+Accessibility is a requirement, not a nice-to-have: see [Accessibility](#accessibility).
+
+## Quick start (local)
+
+Needs Python 3.12 (the version Render uses; 3.11+ should work). SQLite is the database, so nothing else to install.
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py seed_site          # starter pages, settings, team and profiles
+python manage.py seed_site          # starter pages, settings, providers and photos
 python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Open http://localhost:8000 for the site and http://localhost:8000/admin for the editor. To rebuild the starter content from scratch, run `python manage.py seed_site --reset`. This deletes all pages.
+Open http://localhost:8000 for the site and http://localhost:8000/admin/ for the Wagtail editor.
+
+`manage.py` uses `beyondlimits.settings.dev` by default (debug on, any host allowed, email printed to the console). For machine-specific overrides, create `beyondlimits/settings/local.py`; it's imported last by both settings files and is git-ignored.
+
+### Tests
+
+```bash
+python manage.py test
+```
+
+The tests (`core/tests/test_site.py`) seed the site and then check that every page type renders, the Veterans link is on every page, the contact form behaves correctly with and without LuxSci, and the admin login lockout works. Run them, and `python manage.py makemigrations --check`, before every push.
+
+## Starter content: `seed_site`
+
+`core/management/commands/seed_site.py` builds the whole site from code: the page tree, every page's blocks, the clinic settings, all providers and the starter photos. It's what makes the site usable straight after `migrate`, and it's what rebuilds the Render preview on every start.
+
+```bash
+python manage.py seed_site          # does nothing if a HomePage already exists
+python manage.py seed_site --reset  # deletes ALL pages and providers, then rebuilds
+```
+
+`--reset` is destructive: it deletes every page under the root, every provider, and every image whose title ends in "(starter photo)". Never run it against a database with real edits you want to keep.
+
+Where the content comes from:
+
+- **Page copy** is adapted from beyondlimitstherapy.org and from the clinic's developer's WordPress build. It lives inline in `seed_site.py`, one section per page (search for `# ---------------- About`, etc.).
+- **Provider list** is the `PROVIDERS` table near the top of `seed_site.py` (name, credentials, title, discipline, clinician or office staff).
+- **Provider profiles** (intro, licensure, education, experience) are in `core/fixtures/provider_profiles.json`, keyed by the provider's name. They're summarized from the developer's build, and each provider still needs to review theirs.
+- **Starter photos** are in `core/seed_images/`. See [`core/seed_images/README.md`](core/seed_images/README.md) for which file goes where. A missing file is simply skipped and that spot falls back to its illustration or icon, so photos can be added one at a time.
+  - **Provider headshots** go in `core/seed_images/providers/<slug>.jpg`, where `<slug>` is the end of the provider's profile address (`kimberly-oviedo.jpg` for `/our-providers/kimberly-oviedo/`). Tall photos get a focal point on their upper third so the face survives the square crop. Use 800px wide or more.
+  - **Strip phone metadata (GPS) before committing a photo.** One original already carried a location.
+  - Credits for the stock photos are in `core/seed_images/CREDITS.md`. Patient photos need a signed parent photo release; the hiring slide and the first-visit photo story use the clinic's own photos only, never stock.
 
 ## Preview on Render
 
-`render.yaml` sets up a preview copy that redeploys on every push to `feature/wagtail-site`: a $7 web service, a $6 Render Postgres database and a 1 GB persistent disk for uploads ($0.25), about $13.25 a month. In Render, choose **New > Blueprint**, pick this repository and that branch, and fill in an admin username, email and password when asked. The preview is hidden from search engines (`SITE_NOINDEX=1`).
+`render.yaml` is a Render Blueprint for a free preview that redeploys on every push to `feature/wagtail-site`. To set one up: in Render choose **New > Blueprint**, pick this repository and branch, and enter an admin username, email and password when asked.
 
-Pages live in Postgres and uploads on the disk, so edits made in the admin survive deploys. `seed_site` only fills an empty database, so later changes to the seed data don't reach an existing site; add that content in the admin instead. The admin login from the environment is created once; after that, change the password in the admin. Because of the disk, each deploy has a short gap while the old copy stops.
+On each start the service runs `migrate`, then `seed_site`, then `createsuperuser` (from the `DJANGO_SUPERUSER_*` variables), then gunicorn.
 
-## What editors can change
+**The preview forgets everything.** The free plan has no persistent disk, so SQLite and uploaded media are wiped on every deploy *and* every wake from sleep, and the site is rebuilt from `seed_site`. Admin edits and uploads are lost. That's why starter photos live in the repo rather than being uploaded. For a copy that keeps edits, add Render Postgres (and a file store for media), or run it locally.
 
-- **Settings > Clinic settings**: logo, phone, fax, email, address, hours, map, social links, and which pages "Start here", Veterans, Careers and HIPAA link to.
-- **Snippets > Team members**: providers and staff, with a photo, discipline, card blurb and full profile (licensure, education, experience). Each one gets a page at `/our-providers/<slug>/`.
-- **Pages**: every page is built from blocks, including split text/image, card grids, numbered steps, checklists, FAQs, document lists, testimonials, stats, call-to-action banners and the form finder.
-- **Home slider**: slides with an optional photo, caption box color and button. It rotates every 7 seconds, has a Pause button, and stops while hovered or focused. Visitors who prefer reduced motion get no auto-rotation.
+The preview sends `noindex` to search engines (`SITE_NOINDEX=1`).
 
-## Page types
+## Environment variables
 
-| Type | Used for |
-| --- | --- |
-| HomePage | Slider, numbered quick links, flexible body |
-| StandardPage | About, Get Started, Resources, Veterans, HIPAA |
-| ServiceIndexPage / ServicePage | Services and the four therapies |
-| TeamPage | Providers, with a discipline filter and profile pages |
-| CareersPage / JobPage | Careers and job postings (one sample posting is left as a draft) |
-| ContactPage | Contact form with a map |
+Production settings (`beyondlimits.settings.production`) read:
 
-## Accessibility notes
+| Variable | Required | What it does |
+| --- | --- | --- |
+| `DJANGO_SETTINGS_MODULE` | yes | `beyondlimits.settings.production` on any real server. |
+| `DJANGO_SECRET_KEY` | yes | Django secret key. Render generates one. |
+| `DJANGO_ALLOWED_HOSTS` | yes, off Render | Comma-separated hostnames. On Render, `RENDER_EXTERNAL_HOSTNAME` is added automatically. CSRF trusted origins are derived from this list. |
+| `WAGTAILADMIN_BASE_URL` | no | Full site URL for links in admin emails. Defaults to the Render hostname. |
+| `SITE_NOINDEX` | no | `1` adds a `noindex` robots tag to every page. Set on previews; never on the live site. |
+| `SQLITE_PATH` | no | Where the SQLite file lives. Defaults to `db.sqlite3` in the repo root. |
+| `SERVE_MEDIA` | no | `1` (default) lets Django serve `/media/` itself when debug is off. Set `0` once media moves to S3 or similar. |
+| `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL` | no | SMTP for the fallback Wagtail contact form. Without `EMAIL_HOST`, mail is written to the log instead. Not used while the LuxSci form is on. |
+| `DJANGO_SUPERUSER_USERNAME`, `_EMAIL`, `_PASSWORD` | Render only | The admin login the preview creates on each start. |
 
-- Text and buttons meet WCAG AA contrast. Lime buttons use dark text, and white text only sits on indigo, green or red.
-- Motion respects `prefers-reduced-motion`. The slider can be paused, and the layout has no flashing or busy backgrounds.
-- The site has a skip link, visible focus styles, an accessible mobile menu, and labeled form fields with inline errors.
+There's also a `Dockerfile` (the Wagtail project default, lightly used) if you'd rather run it in a container.
+
+## How editors use the Wagtail admin
+
+Editors log in at `/admin/`. What they can change:
+
+- **Pages** (left menu): every page is built from content blocks such as headings, rich text, split text/image, card grids, numbered steps, checklists, callouts, FAQs, link and document lists, testimonials, stats, call-to-action banners, the forms chooser, the first-visit photo story and the "Does this sound like your child?" cards. Each page also has a header intro line and color.
+- **Home page slider**: slides with a photo (or an illustration), caption box color, button and note. It rotates every 7 seconds with a checkerboard tile transition, has a Pause button, stops on hover or focus, and doesn't auto-rotate for visitors who prefer reduced motion.
+- **Providers** (left menu, under Pages): add, edit, reorder and remove providers and office staff. Each has a photo, discipline, card blurb and full profile (licensure, education, experience), and gets a page at `/our-providers/<slug>/`. Untick **Clinician** for front office staff (they're listed but left out of the home page team row).
+- **Settings > Clinic settings**: logo, phone, fax, email, address, hours, map, social links, and which pages "Start here", Veterans, Careers, HIPAA, Insurance and First visit link to.
+- **Images**: set a **focal point** on any photo whose crop cuts off faces. Slides, service photos and headshots are cropped square; first-visit photos to 4:3. The Our Providers team photo is never cropped. Fill in each image's description for screen readers.
+- **Contact page**: the "LuxSci Secure Form code" field. See [Contact form](#contact-form-luxsci).
+
+### Contact form (LuxSci)
+
+The Contact Us form posts **straight to LuxSci** (a HIPAA-compliant form service), not to this server, so messages that mention a child's health are never saved in the admin or written to logs. Its form code (currently `18249-26830-Zg4g`) is set on the Contact page in the admin. While it's set, the page refuses any POST to itself.
+
+After sending, LuxSci should send families back to `/contact/?sent=1`, which shows the thank-you text. That redirect is set in LuxSci's own settings, not here.
+
+Clearing the code falls back to a normal Wagtail form that saves submissions in the admin and emails them. Only do that if no health details will ever come through it.
+
+The eight admission forms on Get Started are separate LuxSci forms the clinic already uses, linked by URL.
+
+### Admin login lockout
+
+[django-axes](https://django-axes.readthedocs.io/) locks a username + visitor address pair for one hour after 5 wrong passwords. There's no unlock screen in the admin; from a shell on the server run `python manage.py axes_reset` (or `axes_reset_username <name>`). The visitor address comes from Cloudflare's header on Render; see `core/security.py` and the architecture doc before moving hosts.
+
+## Accessibility
+
+- Target is WCAG 2.1 AA. The owner checks pages with WAVE; axe reports zero A/AA violations on all page types. Keep it that way: check WAVE and axe after any template or CSS change.
+- When running axe, turn on reduced motion. Otherwise scroll-reveal elements are caught mid-fade and read as low contrast.
+- Text and buttons meet AA contrast. Lime buttons use dark text; white text only sits on indigo, green or red. Lime text on indigo fails.
+- All motion respects `prefers-reduced-motion`. The slider can be paused; page-header butterflies play once in under 5 seconds (WCAG 2.2.2).
+- Skip link, visible focus styles, an accessible mobile menu, labeled form fields, one `h1` per page, and headings in order.
+- Manual keyboard and screen-reader testing is still recommended before launch.
 
 ## Before launch
 
-- Upload the real logo, photos and PDF forms. The form finder shows "Ask us for this form" until a document is attached.
-- Have each provider check their profile. These are lightly summarized from the developer's build (`core/fixtures/provider_profiles.json`).
-- Work through the open questions in [`docs/client-questions.md`](docs/client-questions.md).
-- Production settings read `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and `WAGTAILADMIN_BASE_URL` from the environment.
+Launch blockers:
+
+- [ ] **HIPAA Privacy Policy page** is a placeholder. The clinic must supply the real notice.
+- [ ] **A persistent database** (Render Postgres or another host). The free preview loses every edit.
+- [ ] **Media storage** (S3, Cloudinary or similar), then `SERVE_MEDIA=0`.
+- [ ] **Remove `SITE_NOINDEX`** on the live site, and set `DJANGO_ALLOWED_HOSTS` / `WAGTAILADMIN_BASE_URL` for the real domain.
+- [ ] **Sample job posting**: `seed_site` creates an example Speech-Language Pathologist posting that is meant to be a draft but is published (live) on the Careers page. Unpublish or replace it.
+- [ ] **Login lockout address**: if the live host isn't behind Cloudflare, update `core/security.py` (see its docstring).
+
+Waiting on the clinic:
+
+- [ ] **Photos**: real team photo (replaces the stand-in on Our Providers, which shows another organization's wall sign), clinic photos for the first-visit story and hiring slide, more provider headshots. A shot list was sent.
+- [ ] **High-resolution logo** (SVG, AI, EPS, or PNG 1000px+). The current file is 175px wide.
+- [ ] **Provider profiles** reviewed by each provider.
+- [ ] **Forms homework**: who fills out which admission form, and when. Get Started is parked until this comes back. See `docs/client-questions.md`.
+- [ ] **LuxSci**: confirm form account 18249 (contact) belongs to the clinic under its HIPAA agreement (the admission forms use 18016), and set its after-send page to `/contact/?sent=1`.
+- [ ] **Slide wording** confirmed by the clinic.
+
+Nice to have:
+
+- [ ] Two-factor login for the admin.
+- [ ] Manual keyboard and screen-reader pass.

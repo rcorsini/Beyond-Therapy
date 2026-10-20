@@ -1,3 +1,5 @@
+"""Template helpers used across the site: icons, the main menu and small filters."""
+
 from django import template
 from django.utils.safestring import mark_safe
 
@@ -46,6 +48,11 @@ ICONS = {
 
 @register.simple_tag
 def icon(name, size=24, label=""):
+    """Inline SVG icon, e.g. {% icon "ear" 32 %}.
+
+    Decorative (hidden from screen readers) unless a label is given. Unknown
+    names fall back to the star.
+    """
     paths = ICONS.get(name, ICONS["star"])
     aria = f'role="img" aria-label="{label}"' if label else 'aria-hidden="true"'
     return mark_safe(
@@ -56,6 +63,7 @@ def icon(name, size=24, label=""):
 
 @register.simple_tag(takes_context=True)
 def main_menu(context):
+    """Live, public top-level pages with "Show in menus" ticked, for the header nav."""
     request = context.get("request")
     site = Site.find_for_request(request) if request else None
     if not site:
@@ -65,6 +73,7 @@ def main_menu(context):
 
 @register.simple_tag(takes_context=True)
 def site_root(context):
+    """The current site's home page."""
     request = context.get("request")
     site = Site.find_for_request(request) if request else None
     return site.root_page if site else None
@@ -72,6 +81,7 @@ def site_root(context):
 
 @register.filter
 def is_active(page, current):
+    """True when `current` is `page` or below it, to highlight the menu item."""
     if not current or not getattr(current, "path", None):
         return False
     return current.path.startswith(page.path)
@@ -79,4 +89,5 @@ def is_active(page, current):
 
 @register.filter
 def split_lines(value):
+    """Turn "one item per line" text into a list, skipping blank lines."""
     return [line.strip() for line in (value or "").splitlines() if line.strip()]

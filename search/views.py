@@ -12,6 +12,7 @@ from wagtail.models import Page
 
 
 def search(request):
+    """Site search over live pages, ten results a page (?query=...&page=...)."""
     search_query = request.GET.get("query", None)
     page = request.GET.get("page", 1)
 

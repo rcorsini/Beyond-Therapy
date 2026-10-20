@@ -39,6 +39,7 @@ from pages.models import (
 
 
 def block(type_, value):
+    """One StreamField block in raw JSON form."""
     return {"type": type_, "value": value, "id": str(uuid.uuid4())}
 
 
@@ -48,10 +49,12 @@ def stream(*blocks):
 
 
 def link(label="", page=None, url="", anchor=""):
+    """A LinkBlock value."""
     return {"label": label, "page": page.pk if page else None, "external_url": url, "anchor": anchor}
 
 
 def heading(heading_, eyebrow="", intro=""):
+    """A HeadingBlock value."""
     return {"eyebrow": eyebrow, "heading": heading_, "intro": intro}
 
 
@@ -61,6 +64,11 @@ SEED_IMAGES = Path(__file__).resolve().parents[2] / "seed_images"
 
 
 def seed_image(filename, title, description=""):
+    """Load core/seed_images/<filename> into Wagtail Images, or return None if the file is missing.
+
+    Reuses an image with the same title. Titles end in "(starter photo)" so
+    --reset can find and reload them.
+    """
     path = SEED_IMAGES / filename
     if not path.exists():
         return None
@@ -73,6 +81,7 @@ def seed_image(filename, title, description=""):
 
 
 def image_id(filename, title):
+    """seed_image's id, for raw StreamField JSON."""
     img = seed_image(filename, title)
     return img.pk if img else None
 

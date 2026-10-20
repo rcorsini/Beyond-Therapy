@@ -1,3 +1,5 @@
+"""Local development settings: debug on, any host, email printed to the console."""
+
 from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
