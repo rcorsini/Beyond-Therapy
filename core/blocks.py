@@ -258,6 +258,7 @@ class FormItemBlock(blocks.StructBlock):
     online_url = blocks.URLBlock(required=False, help_text="Secure online form (e.g. LuxSci). Shown as 'Fill out online'.")
     document = DocumentChooserBlock(required=False, help_text="Printable PDF, if there is one.")
     note = blocks.CharBlock(required=False, help_text="e.g. 'Only if you'll use telehealth'")
+    stage = blocks.CharBlock(required=False, help_text="When to fill it out, e.g. 'Before your first appointment'. Forms with the same stage are grouped under that heading.")
 
 
 class FormFinderOptionBlock(blocks.StructBlock):
@@ -294,10 +295,12 @@ class FormFinderBlock(blocks.StructBlock):
     )
 
     def get_context(self, value, parent_context=None):
-        """Gives each path one numbered list: its own forms, then each option's, once each.
+        """Gives each path one numbered list: its own forms, then each option's, once each,
+        grouped by stage ("Now", "Before your first appointment") in order of first use.
 
-        An item's `options` holds the numbers of the options it belongs to ("" = always
-        shown) and `labels` their names, for the no-JavaScript list.
+        An item's or group's `options` holds the numbers of the options it belongs to
+        ("" = always shown); the script hides what the answers don't need. `labels`
+        names those options for the no-JavaScript list.
         """
         context = super().get_context(value, parent_context)
         context["paths"] = []
@@ -308,10 +311,17 @@ class FormFinderBlock(blocks.StructBlock):
                     item = items.setdefault((f["title"], f["online_url"], f["note"]), {"form": f, "options": [n] if n else []})
                     if item["options"] and n not in item["options"]:
                         item["options"].append(n)
+            groups = {}
             for item in items.values():
+                group = groups.setdefault(item["form"]["stage"], {"stage": item["form"]["stage"], "items": [], "options": [], "always": False})
+                group["items"].append(item)
+                group["always"] = group["always"] or not item["options"]
+                group["options"] += [n for n in item["options"] if n not in group["options"]]
                 item["labels"] = ", ".join(path["options"][n - 1]["label"] for n in item["options"])
                 item["options"] = " ".join(map(str, item["options"]))
-            context["paths"].append({"value": path, "items": list(items.values())})
+            for group in groups.values():
+                group["options"] = "" if group["always"] else " ".join(map(str, group["options"]))
+            context["paths"].append({"value": path, "groups": list(groups.values())})
         return context
 
     class Meta:
