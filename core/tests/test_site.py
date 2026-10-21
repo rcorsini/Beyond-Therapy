@@ -35,8 +35,8 @@ class SeededSiteTests(TestCase):
     def test_form_finder_combines_therapy_forms(self):
         response = self.client.get("/get-started/")
         self.assertContains(response, "data-finder-multi")
-        # General Admissions is listed once and always shown; each therapy form only for its answer.
-        self.assertContains(response, "<strong>General Admissions Form</strong>", count=1)
+        # General Admissions opens both the new-patient and the hearing-test doors; each therapy form only for its answer.
+        self.assertContains(response, "<strong>General Admissions Form</strong>", count=2)
         self.assertContains(response, '<li class="doc-list__item" data-finder-for="1">')
         self.assertContains(response, "https://beyond-limits.secure-form.com/feeding-n/", count=2)  # new, and adding a therapy
         self.assertContains(response, "https://beyond-limits.secure-form.com/st-patient/", count=1)  # adding therapies only

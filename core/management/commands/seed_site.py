@@ -202,10 +202,10 @@ def get_started_blocks(insurance, contact, veterans):
     def form(title, url="", note=""):
         return {"title": title, "online_url": url, "document": None, "note": note}
 
-    # Every new patient starts with General Admissions (plus the Feeding Intake for feeding
-    # concerns). The therapies, and their Brief Admissions forms, are added after the first
+    # Every new patient, hearing tests included, starts with General Admissions (plus the Feeding
+    # Intake for feeding concerns). The therapies, and their Brief Admissions forms, are added after the first
     # visit, or any time later; the clinic used to hand those out on a clipboard.
-    general = form("General Admissions Form", lux + "12134/J1HD/form.html", "Every new patient, whatever the therapy. Send it with your pediatrician's referral.")
+    general = form("General Admissions Form", lux + "12134/J1HD/form.html", "Every new patient, for therapy or a hearing test. Send it with your pediatrician's referral.")
     feeding = form("Feeding Intake Form", new + "feeding-n/", "About 12 minutes. Needed before we can schedule a feeding evaluation.")
     feeding_note = "<p>Please bring 2 or 3 foods your child likes, 2 or 3 foods they find hard to manage, and a drink to the feeding evaluation.</p>"
     therapies = [
@@ -240,8 +240,9 @@ def get_started_blocks(insurance, contact, veterans):
                     "label": "My child needs a hearing test", "description": "Audiology, newborn to school age", "icon": "ear",
                     "follow_up_question": "How old is your child?",
                     "note": "<p><b>You'll also need a referral</b> from your child's pediatrician before we can schedule the hearing test. "
-                            "Our audiology clinic has its own paperwork, so you don't need any therapy forms.</p>",
-                    "forms": [],
+                            "Start with the General Admissions Form, like every new patient, then the Audiology Admission Form for your child's age. "
+                            "You don't need any therapy forms.</p>",
+                    "forms": [general],
                     "options": [
                         {"label": "Newborn to 12 months", "forms": [form("Audiology Admission Form", lux + "22903/xOy1/form.html", "Newborn to 12 months")]},
                         {"label": "13 months to school age", "forms": [form("Audiology Admission Form", lux + "22904/R68Q/form.html", "13 months to school age")]},
